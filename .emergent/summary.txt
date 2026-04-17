@@ -1,0 +1,191 @@
+<analysis>
+<original_problem_statement>
+The user wants to create a smartphone application to connect people who cook at home with people interested in their meals who don't have time to cook.
+
+**Product Requirements:**
+- The application should be named Mon Voisin Cuisine.
+- Users (cooks and customers) should be able to register and log in.
+- Cooks can publish meals with photos, descriptions, prices, portions, and pickup times/locations.
+- Customers can search for nearby meals, view details, and place orders.
+- The platform owner (the user) should receive a commission on each sale. The commission is 10% of the meal price, with a minimum of €0.50, added to the total price for the customer.
+- Meals should not be visible after their pickup date and time have passed.
+- Meals with zero portions left should not be visible.
+- The app should have a Notre philosophie (Our Philosophy) page explaining the spirit of the community.
+- Cooks should be able to either take a photo directly with the camera or choose one from their gallery when creating a meal.
+- The app should filter meals by distance, showing nearby options. Cooks should be able to specify a location/address.
+- The UI for creating a meal, especially for date and time selection, should be user-friendly (e.g., using a calendar).
+</original_problem_statement>
+
+**User's preferred language**: Français. The next agent MUST respond in French.
+
+**what currently exists?**
+A full-stack mobile application built with Expo (React Native) and FastAPI/MongoDB. The app, named Mon Voisin Cuisine, has a functional backend and frontend.
+
+Core features implemented:
+-   **Authentication**: JWT-based user registration and login.
+-   **Meal Management (CRUD)**: Cooks can create, view, and manage their meal listings.
+-   **Ordering System**: Customers can browse meals and place orders.
+-   **Commission System**: A 10% commission (min €0.50) is automatically calculated and added to the customer's final price.
+-   **Static Page**: A Notre philosophie screen is accessible from the user's profile.
+-   **UI**: The app uses a tab-based navigation structure (Explore, Orders, Cook, Messages, Profile) with a France profonde modern and friendly design theme.
+
+**Last working item**:
+    - Last item agent was working: The agent was implementing the feature for cooks to add a specific address or neighborhood when creating a meal. The user requested this for better location context than just GPS coordinates. The implementation was in progress: the UI element was added to the form, but the backend logic to save it and the frontend logic to display it were not complete.
+    - Status: IN PROGRESS
+    - Agent Testing Done: N
+    - Which testing method agent to use? both
+    - User Testing Done: N
+
+**All Pending/In progress Issue list**:
+  - Issue 1: (P0) Finish the Precise Address feature.
+  - Issue 2: (P1) Expired meals (past their pickup date/time) are not being filtered out from the main list.
+  - Issue 3: (P2) Meals with zero portions remaining are still visible in the meal list.
+  - Issue 4: (P3) The image selection feature on the Create Meal screen is buggy and behaves inconsistently between the web preview and the Expo Go app.
+
+  Issues Detail:
+  - Issue 1: **Finish the Precise Address feature**
+     - Attempted fixes: An  input field was added to the  form, and the  model in  was updated. However, the implementation is incomplete.
+     - Next debug checklist:
+        1.  In :
+            - Ensure the  MongoDB model (if using a separate schema definition) includes the  field.
+            - In the  endpoint, ensure the  from the request body is being saved to the new meal document in the database.
+        2. In  and any component that renders a meal card:
+            - Fetch the  field along with other meal data.
+            - Display the address on the meal card to provide location context to users.
+     - Why fix this issue and what will be achieved with the fix?: This is a direct user request to make the app more practical. It will allow users to know the general location of a meal (e.g., Perpignan centre) before ordering, which is more user-friendly than GPS coordinates.
+     - Status: IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? both
+     - Blocked on other issue: None
+
+  - Issue 2: **Expired meals are not filtered out**
+     - Attempted fixes: The agent started adding logic to the  endpoint in  to filter by . The agent added a query part  but it was interrupted and may not be complete or correct.
+     - Next debug checklist:
+        1. Review the  endpoint in .
+        2. Finalize and test the MongoDB query to ensure it correctly filters out meals where  is in the past. Use  for timezone-aware comparison.
+        3. Test the endpoint using  with both expired and active meals in the database to confirm the filter works.
+     - Why fix this issue and what will be achieved with the fix?: This is a critical usability issue. Users should not see meals that are no longer available for pickup.
+     - Status: IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? backend
+     - Blocked on other issue: None
+
+  - Issue 3: **Meals with zero portions are still visible**
+     - Attempted fixes: The agent noted that the backend already has a filter (). The suspicion was that the frontend is caching the list and not re-fetching it after an order is placed. No concrete fix was implemented.
+     - Next debug checklist:
+        1. In  (or wherever an order is placed), ensure that after a successful order, the meal list on the  screen is invalidated or re-fetched.
+        2. A good approach would be to use a state management library (like  which is already installed) or  to trigger a re-fetch of the  query when an order is successfully created.
+     - Why fix this issue and what will be achieved with the fix?: This is another critical usability bug reported by the user. It prevents confusion and attempts to order sold-out items.
+     - Status: NOT STARTED
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? frontend
+     - Blocked on other issue: None
+  
+  - Issue 4: **Image selection is buggy**
+     - Attempted fixes: The agent first used an  which failed on the web. It was then replaced with two separate buttons (Take Photo, Choose from Gallery). The user reported this is still not working consistently across platforms (web preview vs. device). The agent then rewrote the entire  screen, but the user's last report indicates issues persist.
+     - Next debug checklist:
+        1. Thoroughly test the image selection and form submission flow on both the web preview and a physical device using the Expo Go app.
+        2. In , review the  and  functions. Check for platform-specific code () that might be causing issues.
+        3. Ensure the base64 conversion of the image is handled correctly and doesn't fail silently. Add  statements to trace the  state.
+        4. Verify that the  function correctly sends the  (base64 string) to the backend.
+     - Why fix this issue and what will be achieved with the fix?: A meal-sharing app without the ability to upload photos is not viable. This is a core functionality blocker.
+     - Status: IN PROGRESS
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? frontend
+     - Blocked on other issue: None
+
+**In progress Task List**:
+  - Task 1: Complete backend filtering for expired meals.
+    - Where to resume: , inside the  endpoint.
+    - What will be achieved with this?: The app will only show meals that are currently available for pickup.
+    - Status: IN PROGRESS
+    - Should Test frontend/backend/both after fix?: backend
+
+**Upcoming and Future Tasks**
+  - **Upcoming Tasks**:
+    1.  (P0) Address sharing after order: As discussed with the user, implement a system where the cook's exact address is shared with the buyer only after an order is confirmed, likely via the in-app chat.
+    2.  (P1) Distance filter configuration: Allow the user to configure the search radius (currently hardcoded at 30km).
+
+**Completed work in this session**
+- **MVP Application**: Scaffolding for a full-stack Expo/FastAPI app.
+- **App Renaming**: Changed app name to Mon Voisin Cuisine.
+- **Commission System**: Implemented a 10% (min €0.50) commission on orders.
+- **Philosophy Page**: Created a static Notre philosophie screen.
+- **Improved UI**: Re-designed the Create Meal form with better date/time pickers.
+- **Camera Feature**: Added functionality to take a photo directly from the camera (though it is currently buggy).
+
+**Earlier issues found/mentioned but not fixed**
+   - **Issue 1**: Inconsistent image upload functionality.
+     - Debug checklist:
+        1. Test on web preview and Expo Go separately to isolate the problem.
+        2. Check the  library's documentation for any web-specific configurations or limitations.
+        3. Add detailed logging in  within the , , and  functions to see where the data is lost or the process fails.
+     - Why to solve this issue and what will be achieved with this?: This is a core feature for a food app. Cooks must be able to add photos to their dishes.
+     - Should Test frontend/backend/both after fix: frontend
+     - Is recurring issue? Y
+
+**Known issue recurrence from previous fork**
+  - None
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Frontend**: Expo (React Native), Expo Router, Zustand for state management, Axios for API calls.
+-   **Backend**: FastAPI, Pydantic for data validation.
+-   **Database**: MongoDB.
+-   **UI/UX**: Tab-based navigation, custom components, theme with specific colors (terracotta, olive green).
+
+**key DB schema**
+  - **users**: 
+  - **meals**: 
+  - **orders**: 
+  - **messages**: 
+
+**changes in tech stack**
+  - None
+
+**All files of reference**
+-   : The entire backend logic is here. Recently modified to add an  field to the  model and to start filtering expired meals.
+-   : The form for creating a new meal. This file has been heavily modified to fix image upload issues and improve the date/time picker. It's the location for the precise address UI and the buggy image picker logic.
+-   : The main home screen that lists meals. It needs to be updated to display the new  field and to correctly refresh its data.
+-   : Modified to add camera permissions.
+
+**Critical Info for New Agent**
+- The user is actively testing the application and providing high-quality feedback. Prioritize fixing the bugs they've reported.
+- The precise address feature is the user's current top priority.
+- The image upload functionality has been a recurring problem. The issue seems to be a discrepancy between the web browser environment and the native Expo Go environment. Testing on both platforms is crucial for debugging.
+- The agent has already performed several major rewrites of the  screen. Be cautious about another full rewrite; targeted fixes might be more effective.
+
+**documents created in this job**
+- None
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **Can you make it so we can put in a precise address?** - In progress.
+2.  **Do I have to provide a precise address when I propose a dish?** - Agent gave recommendations, user agreed with showing a general area publicly.
+3.  **Can you put the precise address?** - User asking for status. In progress.
+4.  **Have you made it so that you can put a precise address?** - User asking for status again. In progress.
+5.  **I dont understand, we only see dishes less than 30km away, right? It would be nice to be able to put a precise address, no?"** - This initiated the "precise address" feature request.
+6.  **"In the web selector I prefer it to say date of availability and time of availability. And remove the rest on this subject, its repetitive.** - UI tweak request. Implemented.
+7.  **Do my dishes or the proposed dishes disappear after the deadline date and time?** - This initiated the expired meal filtering feature request.
+8.  **Give me the internet link for the test again.** - Responded.
+9.  **Still not in the expo preview I cant put the photo. I would also like the date and time at which the dish is offered to be more playful, for example a calendar where you select the date."** - This initiated the rewrite of the create-meal screen and confirmed the photo bug persists.
+10. **"So I created the dish by opening the application with the internet link I cant validate my created dish but I can put a photo and by going directly through emergent view preview its the opposite, I can create my dish and validate it but I cant put the photo.** - Detailed bug report on the photo/validation issue.
+
+**Project Health Check:**
+-   **Broken**: The image upload functionality is partially broken and inconsistent across platforms. Meal filtering (by expiry and portions) is incomplete.
+-   **Mocked**: None.
+
+**3rd Party Integrations**
+- None mentioned or used yet beyond the standard stack.
+
+**Testing status**
+  - Testing agent used after significant changes: YES (Backend tests passed after commission feature; Frontend tests passed before recent bug reports).
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: The backend testing agent created temporary test files, but there are no persistent test files in the repository.
+  - Known regressions: Image upload functionality regressed after an attempted fix.
+
+**Credentials to test flow:**
+-   Email: 
+-   Password: 
+</analysis>
