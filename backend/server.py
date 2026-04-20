@@ -720,7 +720,7 @@ async def get_meals(
     category: Optional[str] = None,
     lat: Optional[float] = None,
     lng: Optional[float] = None,
-    max_distance: float = 30.0,
+    max_distance: float = 10.0,
     user = Depends(get_optional_user)
 ):
     query = {"is_active": True, "portions_left": {"$gt": 0}}
