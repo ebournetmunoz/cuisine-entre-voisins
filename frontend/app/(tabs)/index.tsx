@@ -55,7 +55,7 @@ export default function ExploreScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
-  const [selectedRadius, setSelectedRadius] = useState(30); // Default 30km
+  const [selectedRadius, setSelectedRadius] = useState(10); // Default 30km
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationLoaded, setLocationLoaded] = useState(false);
   const router = useRouter();

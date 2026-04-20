@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -42,20 +43,14 @@ export default function MessagesScreen() {
     }
   };
 
-  useEffect(() => {
-    loadConversations();
-  }, []);
+   useEffect(() => {
+  loadConversations();
+}, []);
 
-  useEffect(() => {
-  if (typeof userId === 'string' && userId.trim()) {
-    router.push(`/chat/${userId}` as any);
-  }
-}, [userId]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadConversations();
-  }, []);
+const onRefresh = useCallback(() => {
+  setRefreshing(true);
+  loadConversations();
+}, []);
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -83,23 +78,41 @@ export default function MessagesScreen() {
   };
 
   const handleDeleteConversation = (userId: string, userName: string) => {
-    const confirmed = window.confirm(`Supprimer la conversation avec ${userName} ?`);
-    if (confirmed) {
-      api.deleteConversation(userId)
-        .then(() => {
-          loadConversations();
-        })
-        .catch(() => {
-          window.alert('Impossible de supprimer la conversation');
-        });
-    }
-  };
+  Alert.alert(
+    'Supprimer la conversation',
+    `Supprimer la conversation avec ${userName} ?`,
+    [
+      {
+        text: 'Annuler',
+        style: 'cancel',
+      },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: () => {
+          api.deleteConversation(userId)
+            .then(() => {
+              loadConversations();
+            })
+            .catch(() => {
+              Alert.alert('Erreur', 'Impossible de supprimer la conversation');
+            });
+        },
+      },
+    ]
+  );
+};
 
   const renderConversationItem = ({ item }: { item: Conversation }) => (
     <View style={styles.conversationRow}>
       <TouchableOpacity
         style={styles.conversationItem}
-        onPress={() => router.push(`/chat/${item.user_id}` as any)}
+        onPress={() =>
+  router.push({
+    pathname: '/chat/[id]',
+    params: { id: item.user_id },
+  })
+}
         activeOpacity={0.7}
       >
         <View style={styles.avatarContainer}>

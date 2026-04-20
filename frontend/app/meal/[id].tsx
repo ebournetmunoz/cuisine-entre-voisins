@@ -167,12 +167,23 @@ export default function MealDetailScreen() {
   };
 
   const handleContactCook = () => {
-    if (!user) {
-      Alert.alert('Connexion requise', 'Connectez-vous pour envoyer un message');
-      return;
-    }
-    router.push(`/chat/${meal?.cook_id}`);
-  };
+  if (!user) {
+    Alert.alert('Connexion requise', 'Connectez-vous pour envoyer un message', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Se connecter', onPress: () => router.push('/(auth)/login') },
+    ]);
+    return;
+  }
+
+  if (!meal?.cook_id) return;
+
+  router.push({
+    pathname: '/chat/[id]',
+    params: {
+      id: meal.cook_id,
+    },
+  });
+};
 
   if (loading) {
     return (
@@ -201,9 +212,9 @@ export default function MealDetailScreen() {
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.shareButton} onPress={() => router.push(`/user/${meal?.cook_id}` as any)}>
-            <Ionicons name="chatbubble-outline" size={22} color={colors.text} />
-          </TouchableOpacity>
+          <TouchableOpacity style={styles.shareButton} onPress={handleContactCook}>
+  <Ionicons name="chatbubble-outline" size={22} color={colors.text} />
+</TouchableOpacity>
         </View>
 
         {firstImageUri ? (

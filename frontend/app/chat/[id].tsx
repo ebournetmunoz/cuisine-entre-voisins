@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
-  TouchableOpacity,
   FlatList,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -130,79 +130,81 @@ export default function ChatScreen() {
   };
 
   if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    </SafeAreaView>
+  );
+}
+      return (
+  <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
+
         <View style={styles.headerInfo}>
           <View style={styles.avatarSmall}>
             <Text style={styles.avatarSmallText}>
-              {otherUserName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) || '?'}
+              {otherUserName
+                ? otherUserName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+                : '?'}
             </Text>
           </View>
           <Text style={styles.headerName}>{otherUserName || 'Conversation'}</Text>
         </View>
+
         <View style={{ width: 44 }} />
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-        keyboardVerticalOffset={0}
-      >
-        {/* Messages */}
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.messagesList}
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Ionicons name="chatbubbles-outline" size={48} color={colors.textMuted} />
-              <Text style={styles.emptyText}>Commencez la conversation !</Text>
-            </View>
-          }
+      <FlatList
+        ref={flatListRef}
+        data={messages}
+        renderItem={renderMessage}
+        keyExtractor={(item) => item.id}
+        style={{ flex: 1 }}
+        contentContainerStyle={
+          messages.length === 0
+            ? styles.emptyContainer
+            : { paddingHorizontal: 16, paddingBottom: 12, paddingTop: 12 }
+        }
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyInner}>
+            <Ionicons name="chatbubble-outline" size={56} color={colors.textMuted} />
+            <Text style={styles.emptyText}>Commencez la conversation !</Text>
+          </View>
+        }
+      />
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={inputText}
+          onChangeText={setInputText}
+          placeholder="Votre message..."
+          placeholderTextColor={colors.textMuted}
+          multiline
         />
 
-        {/* Input */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Votre message..."
-            placeholderTextColor={colors.textMuted}
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-            maxLength={500}
-          />
-          <TouchableOpacity
-            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-            onPress={handleSend}
-            disabled={!inputText.trim() || sending}
-          >
-            {sending ? (
-              <ActivityIndicator color={colors.white} size="small" />
-            ) : (
-              <Ionicons name="send" size={20} color={colors.white} />
-            )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+        <TouchableOpacity
+          style={[
+            styles.sendButton,
+            (!inputText.trim() || sending) && styles.sendButtonDisabled,
+          ]}
+          onPress={handleSend}
+          disabled={sending || !inputText.trim()}
+        >
+          <Ionicons name="send" size={18} color={colors.white} />
+        </TouchableOpacity>
+      </View>
+          </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -318,45 +320,52 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 80,
-  },
-  emptyText: {
-    fontSize: 15,
-    color: colors.textMuted,
-    marginTop: 12,
-  },
+  flexGrow: 1,
+  justifyContent: 'center',
+},
+
+emptyInner: {
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+emptyText: {
+  fontSize: 15,
+  color: colors.textMuted,
+  marginTop: 12,
+},
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: 24,
-    backgroundColor: colors.card,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: colors.backgroundDark,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.text,
-    maxHeight: 100,
-    marginRight: 12,
-  },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  flexDirection: 'row',
+  alignItems: 'flex-end',
+  paddingHorizontal: 12,
+  paddingTop: 10,
+  paddingBottom: 10,
+  backgroundColor: colors.card,
+  borderTopWidth: 1,
+  borderTopColor: colors.border,
+},
+
+input: {
+  flex: 1,
+  backgroundColor: colors.backgroundDark,
+  borderRadius: 20,
+  paddingHorizontal: 14,
+  paddingVertical: 10,
+  fontSize: 15,
+  color: colors.text,
+  maxHeight: 120,
+  marginRight: 8,
+},
+
+sendButton: {
+  width: 42,
+  height: 42,
+  borderRadius: 21,
+  backgroundColor: colors.primary,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
   sendButtonDisabled: {
     backgroundColor: colors.textMuted,
   },
