@@ -538,23 +538,24 @@ async def get_public_user_profile(user_id: str):
     reviews = await reviews_cursor.to_list(20)
 
     return {
-        "id": str(user["_id"]),
-        "name": user.get("name", ""),
-        "bio": user.get("bio"),
-        "city": extract_city_from_address(user.get("address", "")) if user.get("address") else "",
-        "neighborhood": user.get("neighborhood", ""),
-        "rating": user.get("rating", 0.0),
-        "reviews_count": user.get("reviews_count", 0),
-        "meals_count": len(visible_meals),
-        "active_meals": visible_meals,
-        "reviews": [{
-            "id": str(review["_id"]),
-            "reviewer_name": review.get("reviewer_name", "Utilisateur"),
-            "rating": review.get("rating", 0),
-            "comment": review.get("comment"),
-            "created_at": review.get("created_at")
-        } for review in reviews]
-    }
+    "id": str(user["_id"]),
+    "name": user.get("name", ""),
+    "avatar": user.get("avatar"),
+    "bio": user.get("bio"),
+    "city": extract_city_from_address(user.get("address", "")) if user.get("address") else "",
+    "neighborhood": user.get("neighborhood", ""),
+    "rating": user.get("rating", 0.0),
+    "reviews_count": user.get("reviews_count", 0),
+    "meals_count": len(visible_meals),
+    "active_meals": visible_meals,
+    "reviews": [{
+        "id": str(review["_id"]),
+        "reviewer_name": review.get("reviewer_name", "Utilisateur"),
+        "rating": review.get("rating", 0),
+        "comment": review.get("comment"),
+        "created_at": review.get("created_at")
+    } for review in reviews]
+}
 
 
 # ==================== PASSWORD RESET ROUTES ====================

@@ -122,7 +122,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="orders"
         options={{
-          title: 'Commandes',
+          title: 'Commande',
           tabBarIcon: ({ color, size }) => (
             <View>
               <Ionicons name="bag-outline" size={22} color={color} />

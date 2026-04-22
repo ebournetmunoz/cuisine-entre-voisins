@@ -184,16 +184,16 @@ export default function ExploreScreen() {
           <Ionicons name="star" size={12} color={colors.accent} />
           <Text style={styles.rating}>{item.cook_rating.toFixed(1)}</Text>
           {/* Display location: neighborhood takes priority, then city, then distance */}
-          {(item.neighborhood || (item.distance !== null && item.distance !== undefined)) && (
-            <>
-              <Text style={styles.separator}>•</Text>
-              <Ionicons name="location-outline" size={12} color={colors.primary} />
-              <Text style={styles.locationText}>
-                {item.neighborhood || ''}
-                {(item.distance !== null && item.distance !== undefined) ? `${item.neighborhood ? ' • ' : ''}${item.distance} km` : ''}
-              </Text>
-            </>
-          )}
+          {(item.neighborhood || item.distance !== undefined) && (
+  <>
+    <Text style={styles.separator}>•</Text>
+    <Ionicons name="location-outline" size={12} color={colors.primary} />
+    <Text style={styles.locationText}>
+      {item.neighborhood || item.city || 'Près de vous'}
+      {item.distance !== undefined ? ` • ${item.distance.toFixed(1)} km` : ''}
+    </Text>
+  </>
+)}
         </View>
         <View style={styles.cardFooter}>
           {item.is_free ? (

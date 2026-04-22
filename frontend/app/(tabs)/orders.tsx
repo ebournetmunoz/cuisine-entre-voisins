@@ -353,7 +353,7 @@ export default function OrdersScreen() {
             color={activeTab === 'buyer' ? colors.primary : colors.textMuted}
           />
           <Text style={[styles.tabText, activeTab === 'buyer' && styles.tabTextActive]}>
-            Commandes passées
+            Mes commandes
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -366,7 +366,7 @@ export default function OrdersScreen() {
             color={activeTab === 'cook' ? colors.primary : colors.textMuted}
           />
           <Text style={[styles.tabText, activeTab === 'cook' && styles.tabTextActive]}>
-            Commandes reçues
+            Mes ventes 
           </Text>
         </TouchableOpacity>
       </View>

@@ -43,21 +43,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Register for push notifications when user is logged in
   useEffect(() => {
-    if (user && Platform.OS !== 'web') {
-      setupPushNotifications();
-    }
-  }, [user]);
+  if (user && Platform.OS !== 'web' && !__DEV__) {
+    setupPushNotifications();
+  }
+}, [user]);
 
-  const setupPushNotifications = async () => {
-    try {
-      const pushToken = await registerForPushNotificationsAsync();
-      if (pushToken) {
-        await savePushToken(pushToken);
-      }
-    } catch (error) {
-      console.log('Push notification setup error:', error);
+const setupPushNotifications = async () => {
+  try {
+    const pushToken = await registerForPushNotificationsAsync();
+    if (pushToken) {
+      await savePushToken(pushToken);
     }
-  };
+  } catch (error) {
+    console.log('Push notification setup error:', error);
+  }
+};
 
   const loadStoredAuth = async () => {
     try {

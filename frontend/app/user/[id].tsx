@@ -34,6 +34,7 @@ interface Meal {
 interface PublicProfile {
   id: string;
   name: string;
+  avatar?: string;
   bio?: string;
   neighborhood?: string;
   city?: string;
@@ -66,25 +67,31 @@ export default function UserProfileScreen() {
   const initials = (name: string) =>
     name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
-    );
-  }
+ if (loading) {
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.loadingWrap}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    </SafeAreaView>
+  );
+}
 
-  if (!profile) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingWrap}>
-          <Text>Profil introuvable</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+if (!profile) {
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.loadingWrap}>
+        <Text>Profil introuvable</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const avatarUri = profile?.avatar
+  ? profile.avatar.startsWith('data:')
+    ? profile.avatar
+    : `data:image/jpeg;base64,${profile.avatar}`
+  : null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -96,9 +103,15 @@ export default function UserProfileScreen() {
         </View>
 
         <View style={styles.heroCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials(profile.name)}</Text>
-          </View>
+          {avatarUri ? (
+  <Image source={{ uri: avatarUri }} style={styles.avatar} />
+) : (
+  <View style={styles.avatar}>
+    <Text style={styles.avatarText}>
+      {initials(profile.name)}
+    </Text>
+  </View>
+)}
           <Text style={styles.name}>{profile.name}</Text>
           {!!profile.bio && <Text style={styles.bio}>{profile.bio}</Text>}
 
