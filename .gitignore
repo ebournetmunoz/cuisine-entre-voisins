@@ -105,3 +105,20 @@ android-sdk/ -e
 # Environment files
 *.env
 *.env.*
+# Expo / React Native
+.expo/
+frontend/.expo/
+.expo-shared/
+
+# Metro cache
+.metro-cache/
+frontend/.metro-cache/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Env (très important ⚠️)
+.env
+backend/.env
+frontend/.env
