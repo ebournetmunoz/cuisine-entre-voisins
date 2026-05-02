@@ -106,6 +106,28 @@ export default function ProfileScreen() {
       ]);
     }
   };
+  const handleDeleteAccount = () => {
+  Alert.alert(
+    "Supprimer mon compte",
+    "Cette action est irréversible. Voulez-vous continuer ?",
+    [
+      { text: "Annuler", style: "cancel" },
+      {
+        text: "Supprimer",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await api.deleteAccount();
+            await logout();
+            router.replace('/(auth)/login');
+          } catch (error) {
+            Alert.alert("Erreur", "Impossible de supprimer le compte");
+          }
+        },
+      },
+    ]
+  );
+};
 
   const handleUpdateLocation = async () => {
     try {
@@ -380,12 +402,20 @@ const pickImage = async () => {
           </View>
         )}
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color={colors.error} />
-          <Text style={styles.logoutText}>Se déconnecter</Text>
-        </TouchableOpacity>
+<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+  <Ionicons name="log-out-outline" size={20} color={colors.error} />
+  <Text style={styles.logoutText}>Se déconnecter</Text>
+</TouchableOpacity>
 
-        <Text style={styles.version}>Cuisine entre voisins v1.0.0</Text>
+<View style={styles.deleteAccountContainer}>
+  <TouchableOpacity onPress={handleDeleteAccount}>
+    <Text style={styles.deleteAccountText}>
+      Supprimer mon compte
+    </Text>
+  </TouchableOpacity>
+</View>
+
+<Text style={styles.version}>Cuisine entre voisins v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -396,6 +426,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  deleteAccountContainer: {
+  alignItems: 'center',
+  marginTop: 14,
+  marginBottom: 10,
+},
+
+deleteAccountText: {
+  fontSize: 13,
+  color: colors.textMuted,
+  textDecorationLine: 'underline',
+},
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
