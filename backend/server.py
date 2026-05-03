@@ -34,8 +34,8 @@ JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24 * 7  # 7 days
 
 # Commission Configuration
-COMMISSION_RATE = 0.14  # 14%
-COMMISSION_MIN = 0.50   # Minimum 0.50€
+COMMISSION_RATE = 0  # 14%
+COMMISSION_MIN = 0   # Minimum 0.50€
 
 # Stripe Configuration
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
@@ -69,9 +69,7 @@ password_reset_codes = {}
 # ==================== HELPERS ====================
 
 def calculate_commission(subtotal: float) -> float:
-    """Calculate platform commission (14% with minimum 0.50€)"""
-    commission = subtotal * COMMISSION_RATE
-    return max(commission, COMMISSION_MIN)
+    return 0
 
 def extract_city_from_address(address: str) -> str:
     """Extract city name from a full address for public display"""
@@ -229,6 +227,7 @@ class MealCreate(BaseModel):
     bag_provided: bool = True
     bring_container: bool = False
     collection_instructions: str = ""
+    is_free: bool = False
 
 class MealResponse(BaseModel):
     id: str
@@ -706,6 +705,7 @@ async def create_meal(meal_data: MealCreate, user = Depends(get_current_user)):
         "title": meal_data.title,
         "description": meal_data.description,
         "price": meal_data.price,
+        "is_free": meal_data.is_free,
         "portions": meal_data.portions,
         "portions_left": meal_data.portions,
         "category": meal_data.category,
@@ -981,9 +981,11 @@ async def create_order(order_data: OrderCreate, user = Depends(get_current_user)
     if meal["cook_id"] == str(user["_id"]):
         raise HTTPException(status_code=400, detail="Vous ne pouvez pas commander votre propre repas")
 
-    subtotal = meal["price"] * order_data.portions
-    service_fee = calculate_commission(subtotal)
-    total_price = subtotal + service_fee
+    price = 0 if meal.get("is_free", False) else meal["price"]
+
+    subtotal = price * order_data.portions
+    service_fee = 0
+    total_price = subtotal
 
     order_doc = {
         "meal_id": order_data.meal_id,

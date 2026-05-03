@@ -86,26 +86,44 @@ export default function OrdersScreen() {
   }, []);
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
-    try {
-      await api.updateOrderStatus(orderId, newStatus);
-      loadOrders();
-    } catch (error: any) {
-      window.alert(error.response?.data?.detail || 'Mise à jour impossible');
-    }
-  };
+  try {
+    await api.updateOrderStatus(orderId, newStatus);
+    loadOrders();
+  } catch (error: any) {
+    Alert.alert(
+      'Erreur',
+      error.response?.data?.detail || 'Mise à jour impossible'
+    );
+  }
+};
 
-  const handleDeleteOrder = (orderId: string) => {
-    const confirmed = window.confirm('Supprimer cette commande de votre historique ?');
-    if (confirmed) {
-      api.deleteOrder(orderId)
-        .then(() => {
-          loadOrders();
-        })
-        .catch((error: any) => {
-          window.alert(error.response?.data?.detail || 'Suppression impossible');
-        });
-    }
-  };
+const handleDeleteOrder = (orderId: string) => {
+  Alert.alert(
+    'Supprimer la commande',
+    'Supprimer cette commande de votre historique ?',
+    [
+      {
+        text: 'Annuler',
+        style: 'cancel',
+      },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await api.deleteOrder(orderId);
+            loadOrders();
+          } catch (error: any) {
+            Alert.alert(
+              'Erreur',
+              error.response?.data?.detail || 'Suppression impossible'
+            );
+          }
+        },
+      },
+    ]
+  );
+};
 
   const handleOpenReview = (order: Order) => {
     setReviewOrder(order);

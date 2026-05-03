@@ -33,10 +33,9 @@ export default function LegalScreen() {
         <View style={styles.heroSection}>
           <Ionicons name="document-text" size={48} color={colors.primary} />
           <Text style={styles.heroTitle}>Mentions légales</Text>
-          <Text style={styles.heroSubtitle}>Cuisine & Partage</Text>
+          <Text style={styles.heroSubtitle}>Cuisine entre voisins</Text>
         </View>
 
-        {/* Éditeur */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Éditeur</Text>
           <View style={styles.infoRow}>
@@ -57,25 +56,28 @@ export default function LegalScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Objet */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Objet de l'application</Text>
           <Text style={styles.paragraph}>
-            Application pour partager des plats faits maison. Les échanges servent uniquement à couvrir les frais des ingrédients, pas à faire un profit.
+            Cuisine entre voisins est une application de mise en relation entre particuliers permettant de proposer ou de trouver des plats faits maison à proximité.
+          </Text>
+          <Text style={styles.paragraph}>
+            Les utilisateurs fixent librement leurs prix dans un esprit de partage, de proximité et de convivialité.
           </Text>
         </View>
 
-        {/* Responsabilités */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Responsabilités</Text>
-          
+
           <View style={styles.responsibilityItem}>
             <View style={[styles.respIcon, { backgroundColor: colors.secondary + '20' }]}>
               <Ionicons name="restaurant" size={18} color={colors.secondary} />
             </View>
             <View style={styles.respContent}>
               <Text style={styles.respTitle}>Cuisiniers</Text>
-              <Text style={styles.respText}>Garantissent l'hygiène et informent sur les allergènes.</Text>
+              <Text style={styles.respText}>
+                S'engagent à respecter les règles d'hygiène, à préparer les plats dans de bonnes conditions et à informer sur les allergènes.
+              </Text>
             </View>
           </View>
 
@@ -85,7 +87,9 @@ export default function LegalScreen() {
             </View>
             <View style={styles.respContent}>
               <Text style={styles.respTitle}>Consommateurs</Text>
-              <Text style={styles.respText}>Consomment à leurs risques.</Text>
+              <Text style={styles.respText}>
+                Sont responsables de leurs choix et doivent vérifier les informations fournies avant consommation : composition, allergènes, conservation et conditions de remise.
+              </Text>
             </View>
           </View>
 
@@ -95,31 +99,44 @@ export default function LegalScreen() {
             </View>
             <View style={styles.respContent}>
               <Text style={styles.respTitle}>Application</Text>
-              <Text style={styles.respText}>Ne gère pas les transactions et décline toute responsabilité.</Text>
+              <Text style={styles.respText}>
+                Cuisine entre voisins agit uniquement comme plateforme de mise en relation. Elle n'intervient pas dans la préparation, la conservation, la remise ou la consommation des plats.
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Données personnelles */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Transactions</Text>
+          <Text style={styles.paragraph}>
+            Les échanges et paiements éventuels se font directement entre utilisateurs.
+          </Text>
+          <Text style={styles.paragraph}>
+            L'application ne gère pas les transactions, ne perçoit pas de commission sur les plats et ne garantit pas le bon déroulement des échanges.
+          </Text>
+        </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Données personnelles</Text>
           <Text style={styles.paragraph}>
-            Nom, email, coordonnées pour mise en relation. Non partagées.
+            Le nom, l'email, la localisation et les informations de profil sont utilisés uniquement pour le fonctionnement de l'application et la mise en relation.
           </Text>
           <Text style={styles.paragraph}>
-            Droits d'accès ou suppression via{' '}
+            Ces données ne sont ni vendues ni transmises à des tiers à des fins commerciales.
+          </Text>
+          <Text style={styles.paragraph}>
+            Vous pouvez demander l'accès, la modification ou la suppression de vos données à :{' '}
             <Text style={styles.link} onPress={handleEmailPress}>
               e.bournetmunoz@gmail.com
             </Text>
           </Text>
         </View>
 
-        {/* Disclaimer */}
         <View style={styles.disclaimerSection}>
           <Ionicons name="warning" size={24} color={colors.warning} />
           <Text style={styles.disclaimerTitle}>Avertissement</Text>
           <Text style={styles.disclaimerText}>
-            "Chaque utilisateur est responsable de ses plats et de leur consommation. Cuisine & Partage ne peut être tenu responsable d'aucun incident alimentaire."
+            Chaque utilisateur est responsable de ses actions sur la plateforme. Les plats proposés sont réalisés par des particuliers et ne font pas l'objet de contrôles sanitaires par l'application. Il appartient à chacun de faire preuve de vigilance avant toute consommation.
           </Text>
         </View>
 
@@ -236,6 +253,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textLight,
     marginTop: 2,
+    lineHeight: 20,
   },
   disclaimerSection: {
     backgroundColor: colors.warning + '15',
