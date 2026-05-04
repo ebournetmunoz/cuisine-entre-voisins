@@ -12,17 +12,19 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../src/theme/colors';
 
+const CONTACT_EMAIL = 'cuisineentrevoisins@gmail.com';
+
 export default function LegalScreen() {
   const router = useRouter();
 
   const handleEmailPress = () => {
-    Linking.openURL('mailto:e.bournetmunoz@gmail.com');
+    Linking.openURL(`mailto:${CONTACT_EMAIL}`);
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.replace('/(tabs)/home')} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mentions légales</Text>
@@ -33,49 +35,28 @@ export default function LegalScreen() {
         <View style={styles.heroSection}>
           <Ionicons name="document-text" size={48} color={colors.primary} />
           <Text style={styles.heroTitle}>Mentions légales</Text>
-          <Text style={styles.heroSubtitle}>Cuisine & Partage</Text>
+          <Text style={styles.heroSubtitle}>Cuisine entre Voisins</Text>
         </View>
 
-        {/* Éditeur */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Éditeur</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Société :</Text>
-            <Text style={styles.value}>Cuisine & Partage – Micro-entrepreneur</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>SIRET :</Text>
-            <Text style={styles.value}>En attente d'attribution</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Adresse :</Text>
-            <Text style={styles.value}>Rue Édouard Vaillant, 66670 Bages</Text>
-          </View>
-          <TouchableOpacity style={styles.infoRow} onPress={handleEmailPress}>
-            <Text style={styles.label}>Contact :</Text>
-            <Text style={[styles.value, styles.link]}>e.bournetmunoz@gmail.com</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Objet */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Objet de l'application</Text>
           <Text style={styles.paragraph}>
-            Application pour partager des plats faits maison. Les échanges servent uniquement à couvrir les frais des ingrédients, pas à faire un profit.
-          </Text>
+  Application permettant de partager des plats faits maison entre personnes proches géographiquement.
+
+  Les utilisateurs peuvent proposer ou réserver des plats dans un cadre convivial et local. Les montants demandés servent uniquement à couvrir les frais des ingrédients, sans commission prélevée par l'application.
+ </Text>
         </View>
 
-        {/* Responsabilités */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Responsabilités</Text>
-          
+
           <View style={styles.responsibilityItem}>
             <View style={[styles.respIcon, { backgroundColor: colors.secondary + '20' }]}>
               <Ionicons name="restaurant" size={18} color={colors.secondary} />
             </View>
             <View style={styles.respContent}>
               <Text style={styles.respTitle}>Cuisiniers</Text>
-              <Text style={styles.respText}>Garantissent l'hygiène et informent sur les allergènes.</Text>
+              <Text style={styles.respText}>Garantissent l'hygiène, la fraîcheur des plats et informent sur les allergènes.</Text>
             </View>
           </View>
 
@@ -85,7 +66,7 @@ export default function LegalScreen() {
             </View>
             <View style={styles.respContent}>
               <Text style={styles.respTitle}>Consommateurs</Text>
-              <Text style={styles.respText}>Consomment à leurs risques.</Text>
+              <Text style={styles.respText}>Consomment les plats sous leur propre responsabilité.</Text>
             </View>
           </View>
 
@@ -95,33 +76,50 @@ export default function LegalScreen() {
             </View>
             <View style={styles.respContent}>
               <Text style={styles.respTitle}>Application</Text>
-              <Text style={styles.respText}>Ne gère pas les transactions et décline toute responsabilité.</Text>
+              <Text style={styles.respText}>Ne gère pas les transactions et ne prélève aucune commission.</Text>
             </View>
           </View>
         </View>
 
-        {/* Données personnelles */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Données personnelles</Text>
           <Text style={styles.paragraph}>
-            Nom, email, coordonnées pour mise en relation. Non partagées.
-          </Text>
-          <Text style={styles.paragraph}>
-            Droits d'accès ou suppression via{' '}
-            <Text style={styles.link} onPress={handleEmailPress}>
-              e.bournetmunoz@gmail.com
-            </Text>
-          </Text>
+  Les informations collectées sont utilisées uniquement pour permettre la mise en relation entre les utilisateurs.
+
+  Elles ne sont ni vendues, ni partagées à des tiers.
+</Text>
         </View>
 
-        {/* Disclaimer */}
         <View style={styles.disclaimerSection}>
           <Ionicons name="warning" size={24} color={colors.warning} />
           <Text style={styles.disclaimerTitle}>Avertissement</Text>
           <Text style={styles.disclaimerText}>
-            "Chaque utilisateur est responsable de ses plats et de leur consommation. Cuisine & Partage ne peut être tenu responsable d'aucun incident alimentaire."
+            Chaque utilisateur est responsable des plats qu'il propose, achète ou consomme.
+            Cuisine entre Voisins ne peut être tenue responsable en cas de problème lié à la qualité, à la conservation ou à la consommation des plats.
           </Text>
         </View>
+
+        <View style={styles.editorSmallCard}>
+  <Text style={styles.editorSmallTitle}>Éditeur</Text>
+
+  <Text style={styles.editorSmallText}>
+    Cuisine & Partage – Micro-entrepreneur
+  </Text>
+
+  <Text style={styles.editorSmallText}>
+    SIRET : 10243538500012
+  </Text>
+
+  <Text style={styles.editorSmallText}>
+    Adresse : 66670 Bages
+  </Text>
+
+  <TouchableOpacity onPress={handleEmailPress}>
+    <Text style={[styles.editorSmallText, styles.link]}>
+      Contact : cuisineentrevoisins@gmail.com
+    </Text>
+  </TouchableOpacity>
+</View>
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -130,10 +128,7 @@ export default function LegalScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -149,19 +144,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
+  headerTitle: { fontSize: 18, fontWeight: '600', color: colors.text },
+  content: { flex: 1, paddingHorizontal: 16 },
+  heroSection: { alignItems: 'center', paddingVertical: 32 },
   heroTitle: {
     fontSize: 24,
     fontWeight: '700',
@@ -187,24 +172,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 12,
   },
-  infoRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 14,
-    color: colors.textMuted,
-    width: 80,
-  },
-  value: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.text,
-  },
-  link: {
-    color: colors.primary,
-    textDecorationLine: 'underline',
-  },
   paragraph: {
     fontSize: 15,
     color: colors.textLight,
@@ -224,18 +191,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  respContent: {
-    flex: 1,
-  },
-  respTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  respText: {
-    fontSize: 14,
-    color: colors.textLight,
-    marginTop: 2,
+  respContent: { flex: 1 },
+  respTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
+  respText: { fontSize: 14, color: colors.textLight, marginTop: 2 },
+  link: {
+    color: colors.primary,
+    textDecorationLine: 'underline',
   },
   disclaimerSection: {
     backgroundColor: colors.warning + '15',
@@ -244,6 +205,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderLeftWidth: 4,
     borderLeftColor: colors.warning,
+    marginBottom: 18,
   },
   disclaimerTitle: {
     fontSize: 16,
@@ -258,5 +220,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     fontStyle: 'italic',
+  },
+  editorSmallCard: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 10,
+    opacity: 0.7,
+  },
+  editorSmallTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
+    color: '#555',
+  },
+  editorSmallText: {
+    fontSize: 11,
+    color: '#666',
+    marginBottom: 3,
   },
 });
