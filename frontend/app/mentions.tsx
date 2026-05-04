@@ -41,10 +41,10 @@ export default function LegalScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Objet de l'application</Text>
           <Text style={styles.paragraph}>
-  Application permettant de partager des plats faits maison entre personnes proches géographiquement.
-
-  Les utilisateurs peuvent proposer ou réserver des plats dans un cadre convivial et local. Les montants demandés servent uniquement à couvrir les frais des ingrédients, sans commission prélevée par l'application.
- </Text>
+            Application permettant de partager des plats faits maison entre personnes proches géographiquement.
+            {'\n\n'}
+            Les utilisateurs peuvent proposer ou réserver des plats dans un cadre convivial et local. Les montants demandés servent uniquement à couvrir les frais des ingrédients, sans commission prélevée par l'application.
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -56,7 +56,9 @@ export default function LegalScreen() {
             </View>
             <View style={styles.respContent}>
               <Text style={styles.respTitle}>Cuisiniers</Text>
-              <Text style={styles.respText}>Garantissent l'hygiène, la fraîcheur des plats et informent sur les allergènes.</Text>
+              <Text style={styles.respText}>
+                Sont responsables de la préparation des plats, du respect des règles d'hygiène et de la communication des informations liées aux allergènes.
+              </Text>
             </View>
           </View>
 
@@ -66,7 +68,9 @@ export default function LegalScreen() {
             </View>
             <View style={styles.respContent}>
               <Text style={styles.respTitle}>Consommateurs</Text>
-              <Text style={styles.respText}>Consomment les plats sous leur propre responsabilité.</Text>
+              <Text style={styles.respText}>
+                Choisissent et consomment les plats sous leur propre responsabilité.
+              </Text>
             </View>
           </View>
 
@@ -76,7 +80,9 @@ export default function LegalScreen() {
             </View>
             <View style={styles.respContent}>
               <Text style={styles.respTitle}>Application</Text>
-              <Text style={styles.respText}>Ne gère pas les transactions et ne prélève aucune commission.</Text>
+              <Text style={styles.respText}>
+                Agit uniquement comme intermédiaire de mise en relation et ne participe ni à la préparation, ni à la vente, ni au paiement des plats.
+              </Text>
             </View>
           </View>
         </View>
@@ -84,10 +90,10 @@ export default function LegalScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Données personnelles</Text>
           <Text style={styles.paragraph}>
-  Les informations collectées sont utilisées uniquement pour permettre la mise en relation entre les utilisateurs.
-
-  Elles ne sont ni vendues, ni partagées à des tiers.
-</Text>
+            Les informations collectées sont utilisées uniquement pour permettre la mise en relation entre les utilisateurs.
+            {'\n\n'}
+            Elles ne sont ni vendues, ni partagées à des tiers.
+          </Text>
         </View>
 
         <View style={styles.disclaimerSection}>
@@ -95,31 +101,23 @@ export default function LegalScreen() {
           <Text style={styles.disclaimerTitle}>Avertissement</Text>
           <Text style={styles.disclaimerText}>
             Chaque utilisateur est responsable des plats qu'il propose, achète ou consomme.
+            {'\n\n'}
             Cuisine entre Voisins ne peut être tenue responsable en cas de problème lié à la qualité, à la conservation ou à la consommation des plats.
           </Text>
         </View>
 
         <View style={styles.editorSmallCard}>
-  <Text style={styles.editorSmallTitle}>Éditeur</Text>
+          <Text style={styles.editorSmallTitle}>Éditeur</Text>
+          <Text style={styles.editorSmallText}>Cuisine & Partage – Micro-entrepreneur</Text>
+          <Text style={styles.editorSmallText}>SIRET : 10243538500012</Text>
+          <Text style={styles.editorSmallText}>Adresse : 66670 Bages</Text>
 
-  <Text style={styles.editorSmallText}>
-    Cuisine & Partage – Micro-entrepreneur
-  </Text>
-
-  <Text style={styles.editorSmallText}>
-    SIRET : 10243538500012
-  </Text>
-
-  <Text style={styles.editorSmallText}>
-    Adresse : 66670 Bages
-  </Text>
-
-  <TouchableOpacity onPress={handleEmailPress}>
-    <Text style={[styles.editorSmallText, styles.link]}>
-      Contact : cuisineentrevoisins@gmail.com
-    </Text>
-  </TouchableOpacity>
-</View>
+          <TouchableOpacity onPress={handleEmailPress}>
+            <Text style={[styles.editorSmallText, styles.link]}>
+              Contact : {CONTACT_EMAIL}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -193,7 +191,12 @@ const styles = StyleSheet.create({
   },
   respContent: { flex: 1 },
   respTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
-  respText: { fontSize: 14, color: colors.textLight, marginTop: 2 },
+  respText: {
+    fontSize: 14,
+    color: colors.textLight,
+    marginTop: 2,
+    lineHeight: 20,
+  },
   link: {
     color: colors.primary,
     textDecorationLine: 'underline',

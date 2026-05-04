@@ -36,7 +36,7 @@ interface Meal {
   cook_rating: number;
   title: string;
   description: string;
-  price: number;
+  price: number | null;
   portions_left: number;
   category: string;
   images: string[];
@@ -182,7 +182,11 @@ export default function ExploreScreen() {
         </View>
         <View style={styles.cardRow}>
           <Ionicons name="star" size={12} color={colors.accent} />
-          <Text style={styles.rating}>{item.cook_rating.toFixed(1)}</Text>
+          <Text style={styles.rating}>
+  {item.cook_rating === null || item.cook_rating === undefined
+    ? '0.0'
+    : Number(item.cook_rating).toFixed(1)}
+</Text>
           {/* Display location: neighborhood takes priority, then city, then distance */}
           {(item.neighborhood || item.distance !== undefined) && (
   <>
@@ -190,23 +194,26 @@ export default function ExploreScreen() {
     <Ionicons name="location-outline" size={12} color={colors.primary} />
     <Text style={styles.locationText}>
       {item.neighborhood || item.city || 'Près de vous'}
-      {item.distance !== undefined ? ` • ${item.distance.toFixed(1)} km` : ''}
+      {item.distance !== undefined && item.distance !== null
+  ? ` • ${Number(item.distance).toFixed(1)} km`
+  : ''}
     </Text>
   </>
 )}
         </View>
         <View style={styles.cardFooter}>
-          {item.is_free ? (
-  <Text style={[styles.price, { color: 'green', fontWeight: 'bold' }]}>
-    Offert
-  </Text>
-) : (
-  <Text style={styles.price}>
-    {item.price.toFixed(2)} €
-  </Text>
-)}
-          <Text style={styles.portions}>{item.portions_left} dispo</Text>
-        </View>
+  {item.is_free || item.price === null || item.price === undefined ? (
+    <Text style={[styles.price, { color: 'green', fontWeight: 'bold' }]}>
+      Offert
+    </Text>
+  ) : (
+    <Text style={styles.price}>
+      {Number(item.price).toFixed(2)} €
+    </Text>
+  )}
+
+  <Text style={styles.portions}>{item.portions_left} dispo</Text>
+</View>
       </View>
     </TouchableOpacity>
   );
