@@ -27,6 +27,15 @@ const CARD_WIDTH = (width - 48) / 2;
 const CATEGORIES = ['Tous', 'Plat principal', 'Entrée', 'Dessert', 'Boisson', 'Autre'];
 const RADIUS_OPTIONS = [5, 10, 20, 30, 50, 100];
 
+const DATE_FILTERS = [
+  { key: 'today', label: "Aujourd'hui" },
+  { key: 'tomorrow', label: 'Demain' },
+  { key: 'week', label: 'Cette semaine' },
+  { key: 'all', label: 'Tous' },
+] as const;
+
+type DateFilter = typeof DATE_FILTERS[number]['key'];
+
 interface Meal {
   is_free?: boolean;
   id: string;
@@ -49,31 +58,79 @@ interface Meal {
   neighborhood?: string;
 }
 
+const startOfDay = (date: Date) => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+const parseMealDate = (value?: string) => {
+  if (!value) return null;
+
+  if (value.includes('/')) {
+    const [day, month, year] = value.split('/');
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+
+  return new Date(value);
+};
+
+const isMealInDateFilter = (mealDateValue: string, filter: DateFilter) => {
+  if (filter === 'all') return true;
+
+  const mealDate = parseMealDate(mealDateValue);
+  if (!mealDate || Number.isNaN(mealDate.getTime())) return true;
+
+  const today = startOfDay(new Date());
+  const mealDay = startOfDay(mealDate);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const endOfWeek = new Date(today);
+  endOfWeek.setDate(today.getDate() + 7);
+
+  if (filter === 'today') {
+    return mealDay.getTime() === today.getTime();
+  }
+
+  if (filter === 'tomorrow') {
+    return mealDay.getTime() === tomorrow.getTime();
+  }
+
+  if (filter === 'week') {
+    return mealDay >= today && mealDay <= endOfWeek;
+  }
+
+  return true;
+};
+
 export default function ExploreScreen() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
-  const [selectedRadius, setSelectedRadius] = useState(10); // Default 30km
+  const [selectedRadius, setSelectedRadius] = useState(10);
+  const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('today');
+  const [showRadiusOptions, setShowRadiusOptions] = useState(false);
+  const [showDateOptions, setShowDateOptions] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [locationLoaded, setLocationLoaded] = useState(false);
+
   const router = useRouter();
   const { user } = useAuth();
   const refreshCounter = useMealsStore((state) => state.refreshCounter);
 
   const loadLocation = async () => {
-    // First, check if user has location in profile
     if (user?.location?.lat && user?.location?.lng) {
       setUserLocation({
         lat: user.location.lat,
         lng: user.location.lng,
       });
-      setLocationLoaded(true);
       return;
     }
-    
-    // Otherwise, request browser location
+
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === 'granted') {
@@ -86,20 +143,22 @@ export default function ExploreScreen() {
     } catch (error) {
       console.log('Location error:', error);
     }
-    setLocationLoaded(true);
   };
 
   const loadMeals = async () => {
     try {
       const params: any = {};
+
       if (selectedCategory !== 'Tous') {
         params.category = selectedCategory;
       }
+
       if (userLocation) {
         params.lat = userLocation.lat;
         params.lng = userLocation.lng;
-        params.max_distance = selectedRadius; // Send the selected radius to backend
+        params.max_distance = selectedRadius;
       }
+
       const data = await api.getMeals(params);
       setMeals(data);
     } catch (error) {
@@ -116,33 +175,34 @@ export default function ExploreScreen() {
 
   useEffect(() => {
     loadMeals();
-  }, [selectedCategory, userLocation, refreshCounter, selectedRadius]); // Added selectedRadius dependency
+  }, [selectedCategory, userLocation, refreshCounter, selectedRadius]);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadMeals();
-  }, [selectedCategory, userLocation]);
-
-  // Memoize search query to prevent re-renders
-  const [localSearchQuery, setLocalSearchQuery] = useState('');
-  
-  // Debounce search to avoid re-renders while typing
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(localSearchQuery);
     }, 300);
+
     return () => clearTimeout(timer);
   }, [localSearchQuery]);
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadMeals();
+  }, [selectedCategory, userLocation, selectedRadius]);
+
   const filteredMeals = meals.filter((meal) => {
-    // Filter by search query
-    const matchesSearch = meal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      meal.cook_name.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Filter by radius if user has location and meal has distance
-    const matchesRadius = !userLocation || !meal.distance || meal.distance <= selectedRadius;
-    
-    return matchesSearch && matchesRadius;
+    const search = searchQuery.toLowerCase();
+
+    const matchesSearch =
+      meal.title.toLowerCase().includes(search) ||
+      meal.cook_name.toLowerCase().includes(search);
+
+    const matchesRadius =
+      !userLocation || meal.distance === undefined || meal.distance <= selectedRadius;
+
+    const matchesDate = isMealInDateFilter(meal.available_date, selectedDateFilter);
+
+    return matchesSearch && matchesRadius && matchesDate;
   });
 
   const renderMealCard = ({ item }: { item: Meal }) => (
@@ -152,173 +212,74 @@ export default function ExploreScreen() {
       activeOpacity={0.8}
     >
       <View style={styles.imageContainer}>
-  {item.images && item.images.length > 0 ? (
-    <Image
-      source={{
-        uri: item.images[0].startsWith('data:')
-          ? item.images[0]
-          : `data:image/jpeg;base64,${item.images[0]}`
-      }}
-      style={styles.cardImage}
-      resizeMode="contain"
-    />
-  ) : (
-    <View style={styles.placeholderImage}>
-      <Ionicons name="restaurant-outline" size={40} color={colors.textMuted} />
-    </View>
-  )}
+        {item.images && item.images.length > 0 ? (
+          <Image
+            source={{
+              uri: item.images[0].startsWith('data:')
+                ? item.images[0]
+                : `data:image/jpeg;base64,${item.images[0]}`,
+            }}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.placeholderImage}>
+            <Ionicons name="restaurant-outline" size={40} color={colors.textMuted} />
+          </View>
+        )}
 
-  {item.is_vegetarian && (
-    <View style={styles.badge}>
-      <Text style={styles.badgeText}>🌱</Text>
-    </View>
-  )}
-</View>
+        {item.is_vegetarian && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>🌱</Text>
+          </View>
+        )}
+      </View>
+
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+        <Text style={styles.cardTitle} numberOfLines={1}>
+          {item.title}
+        </Text>
+
         <View style={styles.cardRow}>
           <Ionicons name="person-outline" size={12} color={colors.textMuted} />
-          <Text style={styles.cookName} numberOfLines={1}>{item.cook_name}</Text>
+          <Text style={styles.cookName} numberOfLines={1}>
+            {item.cook_name}
+          </Text>
         </View>
+
         <View style={styles.cardRow}>
           <Ionicons name="star" size={12} color={colors.accent} />
           <Text style={styles.rating}>
-  {item.cook_rating === null || item.cook_rating === undefined
-    ? '0.0'
-    : Number(item.cook_rating).toFixed(1)}
-</Text>
-          {/* Display location: neighborhood takes priority, then city, then distance */}
-          {(item.neighborhood || item.distance !== undefined) && (
-  <>
-    <Text style={styles.separator}>•</Text>
-    <Ionicons name="location-outline" size={12} color={colors.primary} />
-    <Text style={styles.locationText}>
-      {item.neighborhood || item.city || 'Près de vous'}
-      {item.distance !== undefined && item.distance !== null
-  ? ` • ${Number(item.distance).toFixed(1)} km`
-  : ''}
-    </Text>
-  </>
-)}
-        </View>
-        <View style={styles.cardFooter}>
-  {item.is_free || item.price === null || item.price === undefined ? (
-    <Text style={[styles.price, { color: 'green', fontWeight: 'bold' }]}>
-      Offert
-    </Text>
-  ) : (
-    <Text style={styles.price}>
-      {Number(item.price).toFixed(2)} €
-    </Text>
-  )}
+            {item.cook_rating === null || item.cook_rating === undefined
+              ? '0.0'
+              : Number(item.cook_rating).toFixed(1)}
+          </Text>
 
-  <Text style={styles.portions}>{item.portions_left} dispo</Text>
-</View>
+          {(item.neighborhood || item.city || item.distance !== undefined) && (
+            <>
+              <Text style={styles.separator}>•</Text>
+              <Ionicons name="location-outline" size={12} color={colors.primary} />
+              <Text style={styles.locationText} numberOfLines={2}>
+                {item.neighborhood || item.city || 'Près de vous'}
+                {item.distance !== undefined && item.distance !== null
+                  ? ` • ${Number(item.distance).toFixed(1)} km`
+                  : ''}
+              </Text>
+            </>
+          )}
+        </View>
+
+        <View style={styles.cardFooter}>
+          {item.is_free || item.price === null || item.price === undefined ? (
+            <Text style={styles.freePrice}>Offert</Text>
+          ) : (
+            <Text style={styles.price}>{Number(item.price).toFixed(2)} €</Text>
+          )}
+
+          <Text style={styles.portions}>{item.portions_left} dispo</Text>
+        </View>
       </View>
     </TouchableOpacity>
-  );
-
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <View style={styles.titleRow}>
-        <View>
-          <Text style={styles.greeting}>Bonjour{user ? `, ${user.name.split(' ')[0]}` : ''} !</Text>
-          <Text style={styles.title}>Qu'est-ce qui vous fait envie ?</Text>
-        </View>
-      </View>
-
-      {/* Location status banner */}
-      {!userLocation && (
-        <TouchableOpacity style={styles.locationBanner} onPress={loadLocation}>
-          <Ionicons name="location-outline" size={18} color={colors.warning} />
-          <Text style={styles.locationBannerText}>
-            Activez la localisation pour voir les plats près de chez vous
-          </Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.warning} />
-        </TouchableOpacity>
-      )}
-
-      {userLocation && (
-        <View style={styles.locationActiveBanner}>
-          <Ionicons name="location" size={16} color={colors.success} />
-          <Text style={styles.locationActiveText}>
-            Plats à moins de {selectedRadius} km de vous
-          </Text>
-        </View>
-      )}
-
-      {/* Radius Selector */}
-      {userLocation && (
-        <View style={styles.radiusContainer}>
-          <Text style={styles.radiusLabel}>Rayon de recherche :</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.radiusOptions}>
-            {RADIUS_OPTIONS.map((radius) => (
-              <TouchableOpacity
-                key={radius}
-                style={[
-                  styles.radiusButton,
-                  selectedRadius === radius && styles.radiusButtonActive,
-                ]}
-                onPress={() => setSelectedRadius(radius)}
-              >
-                <Text
-                  style={[
-                    styles.radiusText,
-                    selectedRadius === radius && styles.radiusTextActive,
-                  ]}
-                >
-                  {radius} km
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-      
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Rechercher un plat ou un cuisinier..."
-          placeholderTextColor={colors.textMuted}
-          value={localSearchQuery}
-          onChangeText={setLocalSearchQuery}
-          autoCorrect={false}
-          autoCapitalize="none"
-        />
-        {localSearchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => { setLocalSearchQuery(''); setSearchQuery(''); }}>
-            <Ionicons name="close-circle" size={20} color={colors.textMuted} />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <FlatList
-        horizontal
-        data={CATEGORIES}
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.categoryButton,
-              selectedCategory === item && styles.categoryButtonActive,
-            ]}
-            onPress={() => setSelectedCategory(item)}
-          >
-            <Text
-              style={[
-                styles.categoryText,
-                selectedCategory === item && styles.categoryTextActive,
-              ]}
-            >
-              {item}
-            </Text>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.categoriesContainer}
-      />
-    </View>
   );
 
   if (loading) {
@@ -334,16 +295,13 @@ export default function ExploreScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Fixed Header - Outside FlatList to prevent re-renders */}
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Bonjour 👋</Text>
-            <Text style={styles.title}>Qu'est-ce qui vous fait envie ?</Text>
-          </View>
+          <Text style={styles.greeting}>Bonjour 👋</Text>
+          <Text style={styles.title}>Qu'est-ce qui vous fait envie ?</Text>
         </View>
 
-        {!userLocation && (
+        {!userLocation ? (
           <TouchableOpacity style={styles.locationBanner} onPress={loadLocation}>
             <Ionicons name="location-outline" size={18} color={colors.warning} />
             <Text style={styles.locationBannerText}>
@@ -351,9 +309,7 @@ export default function ExploreScreen() {
             </Text>
             <Ionicons name="chevron-forward" size={16} color={colors.warning} />
           </TouchableOpacity>
-        )}
-
-        {userLocation && (
+        ) : (
           <View style={styles.locationActiveBanner}>
             <Ionicons name="location" size={16} color={colors.success} />
             <Text style={styles.locationActiveText}>
@@ -362,35 +318,56 @@ export default function ExploreScreen() {
           </View>
         )}
 
-        {/* Radius Selector */}
-        {userLocation && (
-          <View style={styles.radiusContainer}>
-            <Text style={styles.radiusLabel}>Rayon de recherche :</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.radiusOptions}>
-              {RADIUS_OPTIONS.map((radius) => (
-                <TouchableOpacity
-                  key={radius}
+        <View style={styles.filterBlock}>
+          <Text style={styles.filterTitle}>Rayon</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {RADIUS_OPTIONS.map((radius) => (
+              <TouchableOpacity
+                key={radius}
+                style={[
+                  styles.smallChip,
+                  selectedRadius === radius && styles.smallChipActive,
+                ]}
+                onPress={() => setSelectedRadius(radius)}
+              >
+                <Text
                   style={[
-                    styles.radiusButton,
-                    selectedRadius === radius && styles.radiusButtonActive,
+                    styles.smallChipText,
+                    selectedRadius === radius && styles.smallChipTextActive,
                   ]}
-                  onPress={() => setSelectedRadius(radius)}
                 >
-                  <Text
-                    style={[
-                      styles.radiusText,
-                      selectedRadius === radius && styles.radiusTextActive,
-                    ]}
-                  >
-                    {radius} km
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-        
-        {/* Search Bar - Fixed, won't re-render */}
+                  {radius} km
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.filterBlock}>
+          <Text style={styles.filterTitle}>Jour de disponibilité</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {DATE_FILTERS.map((filter) => (
+              <TouchableOpacity
+                key={filter.key}
+                style={[
+                  styles.dateChip,
+                  selectedDateFilter === filter.key && styles.dateChipActive,
+                ]}
+                onPress={() => setSelectedDateFilter(filter.key)}
+              >
+                <Text
+                  style={[
+                    styles.dateChipText,
+                    selectedDateFilter === filter.key && styles.dateChipTextActive,
+                  ]}
+                >
+                  {filter.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />
           <TextInput
@@ -403,14 +380,19 @@ export default function ExploreScreen() {
             autoCapitalize="none"
             returnKeyType="search"
           />
+
           {localSearchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => { setLocalSearchQuery(''); setSearchQuery(''); }}>
+            <TouchableOpacity
+              onPress={() => {
+                setLocalSearchQuery('');
+                setSearchQuery('');
+              }}
+            >
               <Ionicons name="close-circle" size={20} color={colors.textMuted} />
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Categories */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -438,7 +420,6 @@ export default function ExploreScreen() {
         </ScrollView>
       </View>
 
-      {/* Meals List - Separate from search */}
       <FlatList
         data={filteredMeals}
         renderItem={renderMealCard}
@@ -446,13 +427,12 @@ export default function ExploreScreen() {
         numColumns={2}
         columnWrapperStyle={styles.row}
         keyboardShouldPersistTaps="always"
-        keyboardDismissMode="none"
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="restaurant-outline" size={64} color={colors.textMuted} />
             <Text style={styles.emptyTitle}>Aucun repas disponible</Text>
             <Text style={styles.emptyText}>
-              Soyez le premier à partager votre cuisine !
+              Aucun plat ne correspond à ce rayon ou à cette date.
             </Text>
           </View>
         }
@@ -494,12 +474,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
   },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
   greeting: {
     fontSize: 14,
     color: colors.textLight,
@@ -517,7 +491,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginBottom: 16,
+    marginHorizontal: 16,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: colors.warning + '30',
   },
@@ -535,13 +510,66 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    marginBottom: 12,
+    marginHorizontal: 16,
+    marginBottom: 10,
   },
   locationActiveText: {
     fontSize: 12,
     color: colors.success,
     marginLeft: 6,
-    fontWeight: '500',
+    fontWeight: '600',
+  },
+  filterBlock: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  filterTitle: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginBottom: 6,
+    fontWeight: '600',
+  },
+  smallChip: {
+    paddingHorizontal: 13,
+    paddingVertical: 7,
+    borderRadius: 18,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: 8,
+  },
+  smallChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  smallChipText: {
+    fontSize: 13,
+    color: colors.textMuted,
+    fontWeight: '600',
+  },
+  smallChipTextActive: {
+    color: colors.white,
+  },
+  dateChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: 8,
+  },
+  dateChipActive: {
+    backgroundColor: colors.secondary || colors.primary,
+    borderColor: colors.secondary || colors.primary,
+  },
+  dateChipText: {
+    fontSize: 13,
+    color: colors.textLight,
+    fontWeight: '600',
+  },
+  dateChipTextActive: {
+    color: colors.white,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -550,7 +578,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 50,
-    marginBottom: 16,
+    marginHorizontal: 16,
+    marginBottom: 12,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -566,7 +595,8 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   categoriesContainer: {
-    paddingRight: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 4,
   },
   categoryButton: {
     paddingHorizontal: 20,
@@ -583,7 +613,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     color: colors.textLight,
   },
   categoryTextActive: {
@@ -609,25 +639,23 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   imageContainer: {
-  width: '100%',
-  height: 160,
-  backgroundColor: colors.backgroundDark,
-  alignItems: 'center',
-  justifyContent: 'center',
-  overflow: 'hidden',
-},
-
-cardImage: {
-  width: '100%',
-  height: 160,
-},
-
-placeholderImage: {
-  width: '100%',
-  height: 160,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
+    width: '100%',
+    height: 160,
+    backgroundColor: colors.backgroundDark,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  cardImage: {
+    width: '100%',
+    height: 160,
+  },
+  placeholderImage: {
+    width: '100%',
+    height: 160,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   badge: {
     position: 'absolute',
     top: 8,
@@ -647,7 +675,7 @@ placeholderImage: {
   },
   cardTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.text,
     marginBottom: 4,
   },
@@ -671,22 +699,11 @@ placeholderImage: {
     color: colors.textMuted,
     marginHorizontal: 6,
   },
-  distance: {
-    fontSize: 12,
-    color: colors.textMuted,
-    marginLeft: 4,
-  },
-  cityText: {
-    fontSize: 12,
-    color: colors.primary,
-    marginLeft: 4,
-    fontWeight: '500',
-  },
   locationText: {
     fontSize: 12,
     color: colors.primary,
     marginLeft: 4,
-    fontWeight: '500',
+    fontWeight: '600',
     flex: 1,
   },
   cardFooter: {
@@ -703,20 +720,26 @@ placeholderImage: {
     fontWeight: '700',
     color: colors.primary,
   },
+  freePrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.success,
+  },
   portions: {
     fontSize: 12,
     color: colors.success,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 80,
+    paddingHorizontal: 24,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.text,
     marginTop: 16,
   },
@@ -726,37 +749,60 @@ placeholderImage: {
     marginTop: 8,
     textAlign: 'center',
   },
-  radiusContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  radiusLabel: {
-    fontSize: 13,
-    color: colors.textMuted,
-    marginBottom: 8,
-  },
-  radiusOptions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  radiusButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: colors.backgroundDark,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  radiusButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  radiusText: {
-    fontSize: 13,
-    color: colors.textMuted,
-    fontWeight: '500',
-  },
-  radiusTextActive: {
-    color: colors.white,
-  },
+  compactFiltersRow: {
+  flexDirection: 'row',
+  paddingHorizontal: 16,
+  marginBottom: 10,
+  gap: 10,
+},
+
+compactFilterButton: {
+  flex: 1,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: colors.card,
+  borderRadius: 18,
+  paddingVertical: 10,
+  paddingHorizontal: 10,
+  borderWidth: 1,
+  borderColor: colors.border,
+},
+
+compactFilterText: {
+  fontSize: 13,
+  fontWeight: '700',
+  color: colors.text,
+  marginHorizontal: 6,
+},
+
+dropdownOptions: {
+  paddingHorizontal: 16,
+  paddingBottom: 10,
+},
+
+dropdownChip: {
+  paddingHorizontal: 14,
+  paddingVertical: 8,
+  borderRadius: 18,
+  backgroundColor: colors.card,
+  borderWidth: 1,
+  borderColor: colors.border,
+  marginRight: 8,
+},
+
+dropdownChipActive: {
+  backgroundColor: colors.primary,
+  borderColor: colors.primary,
+},
+
+dropdownChipText: {
+  fontSize: 13,
+  color: colors.textLight,
+  fontWeight: '600',
+},
+
+dropdownChipTextActive: {
+  color: colors.white,
+},
 });

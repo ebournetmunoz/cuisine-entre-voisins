@@ -151,9 +151,9 @@ const handleDeleteOrder = (orderId: string) => {
       });
       setShowReviewModal(false);
       loadOrders();
-      window.alert('Merci ! Votre avis a été enregistré');
+      Alert.alert('Merci !', 'Votre avis a été enregistré');
     } catch (error: any) {
-      window.alert(error.response?.data?.detail || 'Impossible de soumettre votre avis');
+      Alert.alert('Erreur', error.response?.data?.detail || 'Impossible de soumettre votre avis');
     } finally {
       setReviewLoading(false);
     }
@@ -171,9 +171,11 @@ const handleDeleteOrder = (orderId: string) => {
       });
       setShowBuyerReviewModal(false);
       loadOrders();
-      window.alert('Merci ! Votre avis sur l\'acheteur a été enregistré');
+      Alert.alert('Merci !', 'Votre avis sur l\'acheteur a été enregistré');
     } catch (error: any) {
-      window.alert(error.response?.data?.detail || 'Impossible de soumettre votre avis');
+      Alert.alert(
+  'Erreur',
+  error.response?.data?.detail || 'Impossible de soumettre votre avis');
     } finally {
       setReviewLoading(false);
     }
@@ -200,20 +202,30 @@ const handleDeleteOrder = (orderId: string) => {
   return (
     <View style={styles.orderCard}>
       <View style={styles.orderHeader}>
-        <View style={styles.imageContainer}>
-          {item.meal_image ? (
-            <Image
-              source={{ uri: item.meal_image.startsWith('data:') ? item.meal_image : `data:image/jpeg;base64,${item.meal_image}` }}
-              style={styles.mealImage}
-            />
-          ) : (
-            <View style={styles.placeholderImage}>
-              <Ionicons name="restaurant-outline" size={24} color={colors.textMuted} />
-            </View>
-          )}
-        </View>
-        <View style={styles.orderInfo}>
-          <Text style={styles.mealTitle} numberOfLines={1}>{item.meal_title}</Text>
+        <TouchableOpacity
+  style={styles.imageContainer}
+  activeOpacity={0.8}
+  onPress={() => router.push(`/meal/${item.meal_id}` as any)}
+>
+  {item.meal_image ? (
+    <Image
+      source={{ uri: item.meal_image.startsWith('data:') ? item.meal_image : `data:image/jpeg;base64,${item.meal_image}` }}
+      style={styles.mealImage}
+    />
+  ) : (
+    <View style={styles.placeholderImage}>
+      <Ionicons name="restaurant-outline" size={24} color={colors.textMuted} />
+    </View>
+  )}
+</TouchableOpacity>
+
+<View style={styles.orderInfo}>
+  <TouchableOpacity
+    activeOpacity={0.8}
+    onPress={() => router.push(`/meal/${item.meal_id}` as any)}
+  >
+    <Text style={styles.mealTitle} numberOfLines={1}>{item.meal_title}</Text>
+  </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push(`/user/${isCook ? item.buyer_id : item.cook_id}` as any)}>
             <Text style={styles.personName}>
               {isCook ? `Client: ${item.buyer_name}` : `Cuisinier: ${item.cook_name}`}
@@ -300,7 +312,7 @@ const handleDeleteOrder = (orderId: string) => {
           </TouchableOpacity>
         )}
 
-        {(item.status === 'cancelled' || item.status === 'completed') && (
+        {(item.status === 'cancelled' || item.status === 'completed' || item.status === 'ready') && (
           <TouchableOpacity
             style={[styles.actionButton, styles.deleteButton]}
             onPress={() => handleDeleteOrder(item.id)}

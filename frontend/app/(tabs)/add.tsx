@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -27,116 +27,43 @@ const CATEGORIES = ['Plat principal', 'Entrée', 'Dessert', 'Boisson', 'Autre'];
 
 export default function AddMealScreen() {
   const { user, updateUser } = useAuth();
+  const router = useRouter();
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [isFree, setIsFree] = useState(false);
   const [portions, setPortions] = useState('');
-  const [category, setCategory] = useState('Plat principal');
+  const [category, setCategory] = useState('');
   const [images, setImages] = useState<string[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [address, setAddress] = useState(user?.address || '');  // Pre-fill from profile
-  const [neighborhood, setNeighborhood] = useState(user?.neighborhood || '');  // Pre-fill from profile
+  const [address, setAddress] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
   const [allergens, setAllergens] = useState('');
   const [isVegetarian, setIsVegetarian] = useState(false);
   const [isVegan, setIsVegan] = useState(false);
-  // New fields - Too Good To Go style
-  const [containerProvided, setContainerProvided] = useState(true);
-  const [bagProvided, setBagProvided] = useState(true);
+  const [containerProvided, setContainerProvided] = useState(false);
+  const [bagProvided, setBagProvided] = useState(false);
   const [bringContainer, setBringContainer] = useState(false);
   const [collectionInstructions, setCollectionInstructions] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const router = useRouter();
+  useEffect(() => {
+  if (user?.address) {
+    setAddress(user.address);
+  }
 
-  const handleAddImage = async (useCamera: boolean) => {
-    try {
-      let permissionResult;
-      
-      if (useCamera) {
-        // On web, camera might not be available - inform user
-        if (Platform.OS === 'web') {
-          // On web, use the same flow as gallery but try to request camera
-          permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-          if (permissionResult.status !== 'granted') {
-            window.alert('Autorisez l\'accès à la caméra ou utilisez la galerie');
-            return;
-          }
-        } else {
-          permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-          if (permissionResult.status !== 'granted') {
-            Alert.alert('Permission requise', 'Autorisez l\'accès à la caméra');
-            return;
-          }
-        }
-        
-        const result = await ImagePicker.launchCameraAsync({
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 0.6,
-          base64: true,
-        });
+  if (user?.neighborhood) {
+    setNeighborhood(user.neighborhood);
+  }
+}, [user]);
 
-        if (!result.canceled && result.assets && result.assets[0]) {
-          const asset = result.assets[0];
-          // Use base64 if available, otherwise use URI
-          if (asset.base64) {
-            const newImage = `data:image/jpeg;base64,${asset.base64}`;
-            setImages(currentImages => [...currentImages, newImage]);
-          } else if (asset.uri) {
-            // Fallback to URI for web
-            setImages(currentImages => [...currentImages, asset.uri]);
-          }
-        }
-      } else {
-        permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (permissionResult.status !== 'granted') {
-          if (Platform.OS === 'web') {
-            window.alert('Autorisez l\'accès aux photos');
-          } else {
-            Alert.alert('Permission requise', 'Autorisez l\'accès aux photos');
-          }
-          return;
-        }
-        
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 0.6,
-          base64: true,
-        });
+  const formatDate = (date?: Date | null) => {
+    if (!date) return '';
 
-        if (!result.canceled && result.assets && result.assets[0]) {
-          const asset = result.assets[0];
-          // Use base64 if available, otherwise use URI
-          if (asset.base64) {
-            const newImage = `data:image/jpeg;base64,${asset.base64}`;
-            setImages(currentImages => [...currentImages, newImage]);
-          } else if (asset.uri) {
-            // Fallback to URI for web
-            setImages(currentImages => [...currentImages, asset.uri]);
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Image picker error:', error);
-      if (Platform.OS === 'web') {
-        window.alert('Impossible de sélectionner l\'image');
-      } else {
-        Alert.alert('Erreur', 'Impossible de sélectionner l\'image');
-      }
-    }
-  };
-
-  const removeImage = (index: number) => {
-    setImages(currentImages => currentImages.filter((_, i) => i !== index));
-  };
-
-  const formatDate = (date: Date) => {
     return date.toLocaleDateString('fr-FR', {
       weekday: 'long',
       day: 'numeric',
@@ -145,17 +72,119 @@ export default function AddMealScreen() {
     });
   };
 
-  const formatTime = (date: Date) => {
+  const formatTime = (date?: Date | null) => {
+    if (!date) return '';
+
     return date.toLocaleTimeString('fr-FR', {
       hour: '2-digit',
       minute: '2-digit',
     });
   };
 
+  const handleAddImage = async (useCamera: boolean) => {
+    try {
+      let permissionResult;
+
+      if (useCamera) {
+        permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+        if (permissionResult.status !== 'granted') {
+          if (Platform.OS === 'web') {
+            window.alert("Autorisez l'accès à la caméra ou utilisez la galerie");
+          } else {
+            Alert.alert('Permission requise', "Autorisez l'accès à la caméra");
+          }
+          return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          allowsEditing: false,
+          quality: 0.7,
+          base64: true,
+        });
+
+        if (!result.canceled && result.assets && result.assets[0]) {
+          const asset = result.assets[0];
+
+          if (asset.base64) {
+            setImages((currentImages) => [
+              ...currentImages,
+              `data:image/jpeg;base64,${asset.base64}`,
+            ]);
+          } else if (asset.uri) {
+            setImages((currentImages) => [...currentImages, asset.uri]);
+          }
+        }
+      } else {
+        permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (permissionResult.status !== 'granted') {
+          if (Platform.OS === 'web') {
+            window.alert("Autorisez l'accès aux photos");
+          } else {
+            Alert.alert('Permission requise', "Autorisez l'accès aux photos");
+          }
+          return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: false,
+          quality: 0.7,
+          base64: true,
+        });
+
+        if (!result.canceled && result.assets && result.assets[0]) {
+          const asset = result.assets[0];
+
+          if (asset.base64) {
+            setImages((currentImages) => [
+              ...currentImages,
+              `data:image/jpeg;base64,${asset.base64}`,
+            ]);
+          } else if (asset.uri) {
+            setImages((currentImages) => [...currentImages, asset.uri]);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Image picker error:', error);
+
+      if (Platform.OS === 'web') {
+        window.alert("Impossible de sélectionner l'image");
+      } else {
+        Alert.alert('Erreur', "Impossible de sélectionner l'image");
+      }
+    }
+  };
+
+  const showImageOptions = () => {
+    Alert.alert('Ajouter une photo', 'Choisissez une option', [
+      {
+        text: 'Prendre une photo',
+        onPress: () => handleAddImage(true),
+      },
+      {
+        text: 'Choisir dans la galerie',
+        onPress: () => handleAddImage(false),
+      },
+      {
+        text: 'Annuler',
+        style: 'cancel',
+      },
+    ]);
+  };
+
+  const removeImage = (index: number) => {
+    setImages((currentImages) => currentImages.filter((_, i) => i !== index));
+  };
+
   const onDateChange = (event: any, date?: Date) => {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
+
     if (date) {
       setSelectedDate(date);
     }
@@ -165,39 +194,58 @@ export default function AddMealScreen() {
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
     }
+
     if (date) {
       setSelectedTime(date);
     }
   };
 
   const handleSubmit = async () => {
-
     const priceNum = parseFloat(price.replace(',', '.'));
-    const portionsNum = parseInt(portions);
+    const portionsNum = parseInt(portions, 10);
 
     if (!title.trim()) {
       Alert.alert('Erreur', 'Veuillez entrer le nom du plat');
       return;
     }
+
     if (!description.trim()) {
       Alert.alert('Erreur', 'Veuillez entrer une description');
       return;
     }
-    if (!isFree && (isNaN(priceNum) || priceNum <= 0)) {
-  Alert.alert('Erreur', 'Veuillez renseigner un prix valide');
-  return;
-}
-    if (!portions) {
-      Alert.alert('Erreur', 'Veuillez entrer le nombre de portions');
+
+    if (!category) {
+      Alert.alert('Erreur', 'Veuillez choisir une catégorie');
       return;
     }
-    if (!address.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer votre adresse ou quartier');
+
+    if (!isFree && (isNaN(priceNum) || priceNum <= 0)) {
+      Alert.alert('Erreur', 'Veuillez renseigner un prix valide');
+      return;
+    }
+
+    if (!portions.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer le nombre de portions');
       return;
     }
 
     if (isNaN(portionsNum) || portionsNum <= 0) {
       Alert.alert('Erreur', 'Nombre de portions invalide');
+      return;
+    }
+
+    if (!selectedDate) {
+      Alert.alert('Erreur', 'Veuillez choisir une date de disponibilité');
+      return;
+    }
+
+    if (!selectedTime) {
+      Alert.alert('Erreur', 'Veuillez choisir une heure de disponibilité');
+      return;
+    }
+
+    if (!address.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer votre adresse ou quartier');
       return;
     }
 
@@ -208,8 +256,10 @@ export default function AddMealScreen() {
       if (!user?.location) {
         try {
           const { status } = await Location.requestForegroundPermissionsAsync();
+
           if (status === 'granted') {
             const location = await Location.getCurrentPositionAsync({});
+
             await updateUser({
               location: {
                 lat: location.coords.latitude,
@@ -236,11 +286,13 @@ export default function AddMealScreen() {
         available_time: availableTime,
         address: address.trim(),
         neighborhood: neighborhood.trim(),
-        allergens: allergens.split(',').map((a) => a.trim()).filter((a) => a),
+        allergens: allergens
+          .split(',')
+          .map((a) => a.trim())
+          .filter((a) => a),
         is_vegetarian: isVegetarian,
         is_vegan: isVegan,
         is_free: isFree,
-        // New fields - Too Good To Go style
         container_provided: containerProvided,
         bag_provided: bagProvided,
         bring_container: bringContainer,
@@ -248,32 +300,31 @@ export default function AddMealScreen() {
       };
 
       await api.createMeal(mealData);
-      
+
       setTitle('');
       setDescription('');
       setPrice('');
       setPortions('');
-      setCategory('Plat principal');
+      setCategory('');
       setImages([]);
-      setSelectedDate(new Date());
-      setSelectedTime(new Date());
-      setAddress(user?.address || '');
-      setNeighborhood(user?.neighborhood || '');
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setAddress('');
+      setNeighborhood('');
       setAllergens('');
       setIsVegetarian(false);
       setIsVegan(false);
-      setContainerProvided(true);
-      setBagProvided(true);
+      setContainerProvided(false);
+      setBagProvided(false);
       setBringContainer(false);
       setCollectionInstructions('');
       setIsFree(false);
-      
+
       setSuccessMessage('Votre repas a été publié avec succès !');
-      
+
       setTimeout(() => {
         router.push('/(tabs)');
       }, 1500);
-      
     } catch (error: any) {
       console.log('Submit error:', error);
       Alert.alert('Erreur', error.response?.data?.detail || 'Publication impossible');
@@ -305,7 +356,6 @@ export default function AddMealScreen() {
             </View>
           ) : null}
 
-          {/* Images */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Photos de votre plat</Text>
             <View style={styles.imagesContainer}>
@@ -320,40 +370,27 @@ export default function AddMealScreen() {
                   </TouchableOpacity>
                 </View>
               ))}
+
               {images.length < 4 && (
-                <>
-                  <TouchableOpacity 
-                    style={styles.addImageButton} 
-                    onPress={() => handleAddImage(true)}
-                  >
-                    <Ionicons name="camera" size={28} color={colors.primary} />
-                    <Text style={styles.addImageText}>Photo</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.addImageButton} 
-                    onPress={() => handleAddImage(false)}
-                  >
-                    <Ionicons name="images" size={28} color={colors.secondary} />
-                    <Text style={styles.addImageText}>Galerie</Text>
-                  </TouchableOpacity>
-                </>
+                <TouchableOpacity style={styles.addImageButton} onPress={showImageOptions}>
+                  <Ionicons name="camera-outline" size={28} color={colors.primary} />
+                  <Text style={styles.addImageText}>Ajouter</Text>
+                </TouchableOpacity>
               )}
             </View>
           </View>
 
-          {/* Title */}
           <View style={styles.section}>
             <Text style={styles.label}>Nom du plat *</Text>
             <TextInput
               style={styles.input}
-              placeholder="Ex: Bœuf bourguignon"
+              placeholder="Ex : Bœuf bourguignon"
               placeholderTextColor={colors.textMuted}
               value={title}
               onChangeText={setTitle}
             />
           </View>
 
-          {/* Description */}
           <View style={styles.section}>
             <Text style={styles.label}>Description *</Text>
             <TextInput
@@ -368,7 +405,6 @@ export default function AddMealScreen() {
             />
           </View>
 
-          {/* Category */}
           <View style={styles.section}>
             <Text style={styles.label}>Catégorie *</Text>
             <View style={styles.categoriesContainer}>
@@ -386,16 +422,12 @@ export default function AddMealScreen() {
             </View>
           </View>
 
-          {/* Price & Portions */}
           <View style={styles.row}>
             <View style={[styles.section, { flex: 1 }]}>
               <Text style={styles.label}>Prix (€) *</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  isFree && { backgroundColor: '#eee' }
-                ]}
-                placeholder="8.50"
+                style={[styles.input, isFree && styles.inputDisabled]}
+                placeholder=""
                 placeholderTextColor={colors.textMuted}
                 value={isFree ? '0' : price}
                 onChangeText={setPrice}
@@ -403,12 +435,14 @@ export default function AddMealScreen() {
                 editable={!isFree}
               />
             </View>
+
             <View style={{ width: 16 }} />
+
             <View style={[styles.section, { flex: 1 }]}>
               <Text style={styles.label}>Portions *</Text>
               <TextInput
                 style={styles.input}
-                placeholder="4"
+                placeholder=""
                 placeholderTextColor={colors.textMuted}
                 value={portions}
                 onChangeText={setPortions}
@@ -417,84 +451,94 @@ export default function AddMealScreen() {
             </View>
           </View>
 
-          <View style={{ marginTop: 10 }}>
+          <View style={styles.section}>
             <Text style={styles.label}>Plat offert</Text>
             <TouchableOpacity
-  onPress={() => {
-    const value = !isFree;
-    setIsFree(value);
-    if (value) setPrice('0');
-  }}
-  style={{
-    backgroundColor: isFree ? 'green' : '#ccc',
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 5,
-    alignItems: 'center'
-  }}
->
-              <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                {isFree ? 'Oui (Offert)' : 'Non'}
-              </Text>
+              onPress={() => {
+                const value = !isFree;
+                setIsFree(value);
+                if (value) {
+                  setPrice('0');
+                } else {
+                  setPrice('');
+                }
+              }}
+              style={[styles.freeButton, isFree && styles.freeButtonActive]}
+            >
+              <Text style={styles.freeButtonText}>{isFree ? 'Oui (Offert)' : 'Non'}</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Date Picker */}
           <View style={styles.section}>
             <Text style={styles.label}>Date de disponibilité *</Text>
+
             {Platform.OS === 'web' ? (
               <View style={styles.webInputContainer}>
                 <Ionicons name="calendar" size={22} color={colors.primary} />
                 <input
                   type="date"
-                  value={selectedDate.toISOString().split('T')[0]}
+                  value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
                   onChange={(e) => setSelectedDate(new Date(e.target.value))}
                   style={webDateInputStyle}
                 />
               </View>
             ) : (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.datePickerButton}
                 onPress={() => setShowDatePicker(true)}
               >
                 <Ionicons name="calendar" size={22} color={colors.primary} />
-                <Text style={styles.datePickerText}>{formatDate(selectedDate)}</Text>
+
+                <Text style={[styles.datePickerText, !selectedDate && styles.placeholderText]}>
+                  {selectedDate ? formatDate(selectedDate) : 'Choisir une date'}
+                </Text>
+
                 <Ionicons name="chevron-down" size={20} color={colors.textMuted} />
               </TouchableOpacity>
             )}
           </View>
 
-          {/* Time Picker */}
           <View style={styles.section}>
             <Text style={styles.label}>Heure de disponibilité *</Text>
+
             {Platform.OS === 'web' ? (
               <View style={styles.webInputContainer}>
                 <Ionicons name="time" size={22} color={colors.primary} />
                 <input
                   type="time"
-                  value={`${selectedTime.getHours().toString().padStart(2, '0')}:${selectedTime.getMinutes().toString().padStart(2, '0')}`}
+                  value={
+                    selectedTime
+                      ? `${selectedTime.getHours().toString().padStart(2, '0')}:${selectedTime
+                          .getMinutes()
+                          .toString()
+                          .padStart(2, '0')}`
+                      : ''
+                  }
                   onChange={(e) => {
                     const [hours, minutes] = e.target.value.split(':');
                     const newTime = new Date();
-                    newTime.setHours(parseInt(hours), parseInt(minutes));
+                    newTime.setHours(parseInt(hours, 10), parseInt(minutes, 10));
                     setSelectedTime(newTime);
                   }}
                   style={webDateInputStyle}
                 />
               </View>
             ) : (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.datePickerButton}
                 onPress={() => setShowTimePicker(true)}
               >
                 <Ionicons name="time" size={22} color={colors.primary} />
-                <Text style={styles.datePickerText}>{formatTime(selectedTime)}</Text>
+
+                <Text style={[styles.datePickerText, !selectedTime && styles.placeholderText]}>
+                  {selectedTime ? formatTime(selectedTime) : 'Choisir une heure'}
+                </Text>
+
                 <Ionicons name="chevron-down" size={20} color={colors.textMuted} />
               </TouchableOpacity>
             )}
           </View>
 
-          {/* Date Picker Modal for iOS */}
           {Platform.OS === 'ios' && showDatePicker && (
             <Modal transparent animationType="slide">
               <View style={styles.modalOverlay}>
@@ -503,14 +547,17 @@ export default function AddMealScreen() {
                     <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                       <Text style={styles.pickerCancel}>Annuler</Text>
                     </TouchableOpacity>
+
                     <Text style={styles.pickerTitle}>Choisir la date</Text>
+
                     <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                       <Text style={styles.pickerDone}>OK</Text>
                     </TouchableOpacity>
                   </View>
+
                   <View style={styles.pickerContainer}>
                     <DateTimePicker
-                      value={selectedDate}
+                      value={selectedDate || new Date()}
                       mode="date"
                       display="spinner"
                       onChange={onDateChange}
@@ -524,7 +571,6 @@ export default function AddMealScreen() {
             </Modal>
           )}
 
-          {/* Time Picker Modal for iOS */}
           {Platform.OS === 'ios' && showTimePicker && (
             <Modal transparent animationType="slide">
               <View style={styles.modalOverlay}>
@@ -533,14 +579,17 @@ export default function AddMealScreen() {
                     <TouchableOpacity onPress={() => setShowTimePicker(false)}>
                       <Text style={styles.pickerCancel}>Annuler</Text>
                     </TouchableOpacity>
+
                     <Text style={styles.pickerTitle}>Choisir l'heure</Text>
+
                     <TouchableOpacity onPress={() => setShowTimePicker(false)}>
                       <Text style={styles.pickerDone}>OK</Text>
                     </TouchableOpacity>
                   </View>
+
                   <View style={styles.pickerContainer}>
                     <DateTimePicker
-                      value={selectedTime}
+                      value={selectedTime || new Date()}
                       mode="time"
                       display="spinner"
                       onChange={onTimeChange}
@@ -553,10 +602,9 @@ export default function AddMealScreen() {
             </Modal>
           )}
 
-          {/* Android Date/Time Pickers */}
           {Platform.OS === 'android' && showDatePicker && (
             <DateTimePicker
-              value={selectedDate}
+              value={selectedDate || new Date()}
               mode="date"
               display="default"
               onChange={onDateChange}
@@ -566,7 +614,7 @@ export default function AddMealScreen() {
 
           {Platform.OS === 'android' && showTimePicker && (
             <DateTimePicker
-              value={selectedTime}
+              value={selectedTime || new Date()}
               mode="time"
               display="default"
               onChange={onTimeChange}
@@ -574,51 +622,61 @@ export default function AddMealScreen() {
             />
           )}
 
-          {/* Address */}
           <View style={styles.section}>
             <Text style={styles.label}>Adresse complète *</Text>
             <View style={styles.addressInputContainer}>
-              <Ionicons name="location" size={20} color={colors.primary} style={styles.addressIcon} />
+              <Ionicons
+                name="location"
+                size={20}
+                color={colors.primary}
+                style={styles.addressIcon}
+              />
               <TextInput
                 style={styles.addressInput}
-                placeholder="Ex: 12 rue de la Paix, 66000 Perpignan"
+                placeholder="Ex : 12 rue de la Paix, 66000 Perpignan"
                 placeholderTextColor={colors.textMuted}
                 value={address}
                 onChangeText={setAddress}
               />
             </View>
-            <Text style={styles.label}>Quartier (visible publiquement)</Text>
+
+            <Text style={[styles.label, { marginTop: 14 }]}>Quartier visible publiquement</Text>
             <View style={styles.addressInputContainer}>
-              <Ionicons name="business-outline" size={20} color={colors.primary} style={styles.addressIcon} />
+              <Ionicons
+                name="business-outline"
+                size={20}
+                color={colors.primary}
+                style={styles.addressIcon}
+              />
               <TextInput
                 style={styles.addressInput}
-                placeholder="Ex: Centre-ville, Saint-Jacques..."
+                placeholder="Ex : Centre-ville, Saint-Jacques..."
                 placeholderTextColor={colors.textMuted}
                 value={neighborhood}
                 onChangeText={setNeighborhood}
               />
             </View>
+
             <View style={styles.addressHintContainer}>
               <Ionicons name="shield-checkmark" size={14} color={colors.success} />
               <Text style={styles.addressHintSecure}>
-                Seuls la ville et le quartier seront visibles. L'adresse complète sera partagée après confirmation de la commande.
+                Seuls la ville et le quartier seront visibles. L'adresse complète sera partagée
+                après confirmation de la commande.
               </Text>
             </View>
           </View>
 
-          {/* Allergens */}
           <View style={styles.section}>
-            <Text style={styles.label}>Allergènes (séparés par des virgules)</Text>
+            <Text style={styles.label}>Allergènes</Text>
             <TextInput
               style={styles.input}
-              placeholder="Gluten, lactose, fruits à coque..."
+              placeholder="Ex : gluten, lactose, fruits à coque..."
               placeholderTextColor={colors.textMuted}
               value={allergens}
               onChangeText={setAllergens}
             />
           </View>
 
-          {/* Dietary preferences */}
           <View style={styles.section}>
             <Text style={styles.label}>Régime alimentaire</Text>
             <View style={styles.checkboxContainer}>
@@ -631,6 +689,7 @@ export default function AddMealScreen() {
                   Végétarien
                 </Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={[styles.checkbox, isVegan && styles.checkboxActive]}
                 onPress={() => {
@@ -646,7 +705,6 @@ export default function AddMealScreen() {
             </View>
           </View>
 
-          {/* Packaging - Too Good To Go style */}
           <View style={styles.section}>
             <Text style={styles.label}>Emballages</Text>
             <View style={styles.packagingContainer}>
@@ -654,26 +712,28 @@ export default function AddMealScreen() {
                 style={[styles.packagingOption, containerProvided && styles.packagingOptionActive]}
                 onPress={() => setContainerProvided(!containerProvided)}
               >
-                <Ionicons 
-                  name={containerProvided ? "checkbox" : "square-outline"} 
-                  size={22} 
-                  color={containerProvided ? colors.primary : colors.textMuted} 
+                <Ionicons
+                  name={containerProvided ? 'checkbox' : 'square-outline'}
+                  size={22}
+                  color={containerProvided ? colors.primary : colors.textMuted}
                 />
                 <View style={styles.packagingTextContainer}>
-                  <Text style={[styles.packagingText, containerProvided && styles.packagingTextActive]}>
+                  <Text
+                    style={[styles.packagingText, containerProvided && styles.packagingTextActive]}
+                  >
                     Récipient fourni
                   </Text>
                 </View>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.packagingOption, bagProvided && styles.packagingOptionActive]}
                 onPress={() => setBagProvided(!bagProvided)}
               >
-                <Ionicons 
-                  name={bagProvided ? "checkbox" : "square-outline"} 
-                  size={22} 
-                  color={bagProvided ? colors.primary : colors.textMuted} 
+                <Ionicons
+                  name={bagProvided ? 'checkbox' : 'square-outline'}
+                  size={22}
+                  color={bagProvided ? colors.primary : colors.textMuted}
                 />
                 <View style={styles.packagingTextContainer}>
                   <Text style={[styles.packagingText, bagProvided && styles.packagingTextActive]}>
@@ -681,15 +741,15 @@ export default function AddMealScreen() {
                   </Text>
                 </View>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.packagingOption, bringContainer && styles.packagingOptionActive]}
                 onPress={() => setBringContainer(!bringContainer)}
               >
-                <Ionicons 
-                  name={bringContainer ? "checkbox" : "square-outline"} 
-                  size={22} 
-                  color={bringContainer ? colors.accent : colors.textMuted} 
+                <Ionicons
+                  name={bringContainer ? 'checkbox' : 'square-outline'}
+                  size={22}
+                  color={bringContainer ? colors.accent : colors.textMuted}
                 />
                 <View style={styles.packagingTextContainer}>
                   <Text style={[styles.packagingText, bringContainer && { color: colors.accent }]}>
@@ -700,21 +760,20 @@ export default function AddMealScreen() {
             </View>
           </View>
 
-          {/* Collection Instructions */}
           <View style={styles.section}>
             <Text style={styles.label}>Instructions de collecte</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Ex: Sonnez à l'interphone 'Dupont'. Je descendrai avec le plat. Parking disponible devant l'immeuble."
+              placeholder="Ex : sonnez à l'interphone, je descendrai avec le plat..."
               placeholderTextColor={colors.textMuted}
               value={collectionInstructions}
               onChangeText={setCollectionInstructions}
               multiline
               numberOfLines={3}
+              textAlignVertical="top"
             />
           </View>
 
-          {/* Submit Button */}
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitButtonDisabled]}
             onPress={handleSubmit}
@@ -813,6 +872,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  inputDisabled: {
+    backgroundColor: '#eee',
+  },
   textArea: {
     height: 100,
     paddingTop: 14,
@@ -904,7 +966,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     marginLeft: 12,
-    textTransform: 'capitalize',
+  },
+  placeholderText: {
+    color: colors.textMuted,
   },
   addressInputContainer: {
     flexDirection: 'row',
@@ -923,12 +987,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     paddingVertical: 14,
-  },
-  addressHint: {
-    fontSize: 12,
-    color: colors.textMuted,
-    marginTop: 6,
-    marginLeft: 4,
   },
   addressHintContainer: {
     flexDirection: 'row',
@@ -1045,7 +1103,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
-  // Packaging styles - Too Good To Go
+  freeButton: {
+    backgroundColor: '#ccc',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 5,
+    alignItems: 'center',
+  },
+  freeButtonActive: {
+    backgroundColor: 'green',
+  },
+  freeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
   packagingContainer: {
     gap: 10,
   },

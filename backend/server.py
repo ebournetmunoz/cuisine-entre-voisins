@@ -928,7 +928,10 @@ async def delete_meal(meal_id: str, user = Depends(get_current_user)):
     return {"message": "Plat supprimé avec succès"}
 @api_router.get("/my-meals")
 async def get_my_meals(user = Depends(get_current_user)):
-    meals_cursor = db.meals.find({"cook_id": str(user["_id"])}).sort("created_at", -1)
+    meals_cursor = db.meals.find({
+    "cook_id": str(user["_id"]),
+    "is_archived": {"$ne": True}
+ }).sort("created_at", -1)
     meals = await meals_cursor.to_list(100)
 
     result = []
@@ -1132,8 +1135,8 @@ async def delete_order(order_id: str, user = Depends(get_current_user)):
     if order["buyer_id"] != user_id and order["cook_id"] != user_id:
         raise HTTPException(status_code=403, detail="Non autorisé")
 
-    if order["status"] not in ["cancelled", "completed"]:
-        raise HTTPException(status_code=400, detail="Seules les commandes annulées ou terminées peuvent être supprimées")
+    if order["status"] not in ["cancelled", "completed", "ready"]:
+        raise HTTPException(status_code=400, detail="Seules les commandes annulées, prêtes ou terminées peuvent être supprimées")
 
     await db.orders.delete_one({"_id": ObjectId(order_id)})
 

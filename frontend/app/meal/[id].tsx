@@ -250,16 +250,27 @@ export default function MealDetailScreen() {
           <Text style={styles.price}>{meal.price.toFixed(2)} € / portion</Text>
 
           <TouchableOpacity style={styles.cookCard} onPress={() => router.push(`/user/${meal.cook_id}` as any)}>
-            <View style={styles.cookAvatar}>
-              <Text style={styles.cookInitials}>
-                {meal.cook_name
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </Text>
-            </View>
+  {meal.cook_avatar ? (
+    <Image
+      source={{
+        uri: meal.cook_avatar.startsWith('data:')
+          ? meal.cook_avatar
+          : `data:image/jpeg;base64,${meal.cook_avatar}`,
+      }}
+      style={styles.cookAvatar}
+    />
+  ) : (
+    <View style={styles.cookAvatarPlaceholder}>
+      <Text style={styles.cookInitials}>
+        {meal.cook_name
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2)}
+      </Text>
+    </View>
+  )}
             <View style={styles.cookInfo}>
               <Text style={styles.cookName}>{meal.cook_name}</Text>
               <View style={styles.ratingRow}>
@@ -268,14 +279,6 @@ export default function MealDetailScreen() {
               </View>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.publicProfileButton}
-            onPress={() => router.push(`/user/${meal.cook_id}` as any)}
-          >
-            <Ionicons name="person-circle-outline" size={18} color={colors.primary} />
-            <Text style={styles.publicProfileButtonText}>Voir le profil et les avis</Text>
           </TouchableOpacity>
 
           <View style={styles.section}>
@@ -730,12 +733,19 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cookAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+  width: 48,
+  height: 48,
+  borderRadius: 24,
+  backgroundColor: colors.primary,
+  },
+
+cookAvatarPlaceholder: {
+  width: 48,
+  height: 48,
+  borderRadius: 24,
+  backgroundColor: colors.primary,
+  alignItems: 'center',
+  justifyContent: 'center',
   },
   cookInitials: {
     fontSize: 16,
