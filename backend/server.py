@@ -205,6 +205,8 @@ class UserUpdate(BaseModel):
     avatar: Optional[str] = None
     bio: Optional[str] = None
     location: Optional[Dict] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     is_cook: Optional[bool] = None
     address: Optional[str] = None
     neighborhood: Optional[str] = None
@@ -482,6 +484,13 @@ async def get_me(user = Depends(get_current_user)):
 async def update_profile(update_data: UserUpdate, user = Depends(get_current_user)):
     update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
 
+    if update_data.latitude is not None and update_data.longitude is not None:
+        update_dict["location"] = {
+            "lat": update_data.latitude,
+            "lng": update_data.longitude,
+            "address": update_data.address or user.get("address", "")
+        }
+
     if update_dict:
         await db.users.update_one({"_id": user["_id"]}, {"$set": update_dict})
 
@@ -495,6 +504,8 @@ async def update_profile(update_data: UserUpdate, user = Depends(get_current_use
         "avatar": updated_user.get("avatar"),
         "bio": updated_user.get("bio"),
         "location": updated_user.get("location"),
+        "latitude": updated_user.get("location", {}).get("lat") if updated_user.get("location") else None,
+        "longitude": updated_user.get("location", {}).get("lng") if updated_user.get("location") else None,
         "address": updated_user.get("address"),
         "neighborhood": updated_user.get("neighborhood"),
         "is_cook": updated_user.get("is_cook", False),

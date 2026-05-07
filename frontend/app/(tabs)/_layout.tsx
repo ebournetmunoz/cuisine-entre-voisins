@@ -47,9 +47,13 @@ export default function TabsLayout() {
             pendingCount++;
           }
           // For customers: count orders that are ready for pickup
-          if (order.user_id === user.id && order.status === 'ready') {
-            pendingCount++;
-          }
+          // Pour les clients : commande confirmée par le cuisinier
+if (
+  order.buyer_id === user.id &&
+  (order.status === 'confirmed' || order.status === 'paid')
+) {
+  pendingCount++;
+}
         });
         
         setPendingOrdersCount(pendingCount);
@@ -144,10 +148,10 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <View>
               <Ionicons name="chatbubble-outline" size={22} color={color} />
-              {unreadCount > 0 && (
+              {(unreadCount + pendingOrdersCount) > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                    {(unreadCount + pendingOrdersCount) > 9 ? '9+' : unreadCount + pendingOrdersCount}
                   </Text>
                 </View>
               )}
@@ -164,6 +168,12 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+  name="meal/[id]"
+  options={{
+    href: null,
+  }}
+/>
     </Tabs>
   );
 }

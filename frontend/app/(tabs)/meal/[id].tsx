@@ -8,17 +8,16 @@ import {
   Image,
   Alert,
   ActivityIndicator,
-  TextInput,
   Modal,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../src/theme/colors';
-import { api } from '../../src/services/api';
-import { useAuth } from '../../src/context/AuthContext';
-import { useMealsStore } from '../../src/stores/mealsStore';
+import { colors } from '../../../src/theme/colors';
+import { api } from '../../../src/services/api';
+import { useAuth } from '../../../src/context/AuthContext';
+import { useMealsStore } from '../../../src/stores/mealsStore';
 
 interface Meal {
   id: string;
@@ -67,7 +66,6 @@ export default function MealDetailScreen() {
   const [orderLoading, setOrderLoading] = useState(false);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [portions, setPortions] = useState(1);
-  const [message, setMessage] = useState('');
   const router = useRouter();
   const { user } = useAuth();
   const triggerRefresh = useMealsStore((state) => state.triggerRefresh);
@@ -149,7 +147,7 @@ export default function MealDetailScreen() {
       await api.createOrder({
         meal_id: id as string,
         portions,
-        message: message.trim() || undefined,
+        message: undefined,
       });
 
       setShowOrderModal(false);
@@ -212,9 +210,7 @@ export default function MealDetailScreen() {
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.shareButton} onPress={handleContactCook}>
-  <Ionicons name="chatbubble-outline" size={22} color={colors.text} />
-</TouchableOpacity>
+          <View style={{ width: 44 }} />
         </View>
 
         {firstImageUri ? (
@@ -280,6 +276,17 @@ export default function MealDetailScreen() {
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
           </TouchableOpacity>
+          <TouchableOpacity style={styles.contactCookButton} onPress={handleContactCook}>
+  <Ionicons name="chatbubble-outline" size={18} color={colors.primary} />
+  <Text style={styles.contactCookButtonText}>Contacter le cuisinier</Text>
+</TouchableOpacity>
+
+<View style={styles.paymentInfoBox}>
+  <Ionicons name="cash-outline" size={18} color={colors.success} />
+  <Text style={styles.paymentInfoText}>
+    Paiement direct au retrait, après confirmation du cuisinier
+  </Text>
+</View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Description</Text>
@@ -482,7 +489,7 @@ export default function MealDetailScreen() {
             <Text style={styles.pickupHint}>Paiement direct au retrait</Text>
           </View>
           <TouchableOpacity style={styles.orderButton} onPress={() => setShowOrderModal(true)}>
-            <Text style={styles.orderButtonText}>Réserver</Text>
+            <Text style={styles.orderButtonText}>Choisir les portions</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -503,7 +510,7 @@ export default function MealDetailScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Votre commande</Text>
+              <Text style={styles.modalTitle}>Confirmer la réservation</Text>
               <TouchableOpacity onPress={() => setShowOrderModal(false)}>
                 <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
@@ -540,25 +547,11 @@ export default function MealDetailScreen() {
               </View>
             </View>
 
-            <View style={styles.messageContainer}>
-              <Text style={styles.messageLabel}>Message au cuisinier (optionnel)</Text>
-              <TextInput
-                style={styles.messageInput}
-                placeholder="Précisez vos préférences, allergies..."
-                placeholderTextColor={colors.textMuted}
-                value={message}
-                onChangeText={setMessage}
-                multiline
-                numberOfLines={3}
-              />
-            </View>
-
             <View style={styles.hybridExplanation}>
               <Ionicons name="information-circle" size={20} color={colors.primary} />
               <Text style={styles.hybridExplanationText}>
-                Vous envoyez une demande au cuisinier. Le règlement du repas se fait directement entre vous au retrait
-                (Wero, espèces ou autre moyen convenu).
-              </Text>
+  Le paiement se fait directement au retrait après validation du cuisinier.
+</Text>
             </View>
 
             <View style={styles.priceBreakdown}>
@@ -580,7 +573,7 @@ export default function MealDetailScreen() {
               {orderLoading ? (
                 <ActivityIndicator color={colors.white} />
               ) : (
-<Text style={styles.confirmButtonText}>Envoyer ma demande</Text>
+<Text style={styles.confirmButtonText}>Confirmer</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -927,13 +920,13 @@ cookAvatarPlaceholder: {
   },
   orderButton: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 32,
-    paddingVertical: 16,
+    paddingHorizontal: 22,
+    paddingVertical: 14,
     borderRadius: 12,
   },
   orderButtonText: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   modalOverlay: {
@@ -946,7 +939,7 @@ cookAvatarPlaceholder: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    paddingBottom: 40,
+    paddingBottom: 24,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -993,25 +986,6 @@ cookAvatarPlaceholder: {
     color: colors.text,
     minWidth: 48,
     textAlign: 'center',
-  },
-  messageContainer: {
-    marginBottom: 24,
-  },
-  messageLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 12,
-  },
-  messageInput: {
-    backgroundColor: colors.backgroundDark,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.text,
-    height: 80,
-    textAlignVertical: 'top',
   },
   priceBreakdown: {
     paddingVertical: 16,
@@ -1267,4 +1241,39 @@ cookAvatarPlaceholder: {
     backgroundColor: colors.border,
     marginVertical: 4,
   },
+  contactCookButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 8,
+  backgroundColor: colors.card,
+  borderWidth: 1,
+  borderColor: colors.primary,
+  borderRadius: 14,
+  paddingVertical: 13,
+  marginTop: 12,
+},
+
+contactCookButtonText: {
+  color: colors.primary,
+  fontWeight: '700',
+  fontSize: 15,
+},
+
+paymentInfoBox: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: colors.success + '12',
+  borderRadius: 12,
+  padding: 12,
+  marginTop: 12,
+  gap: 8,
+},
+
+paymentInfoText: {
+  flex: 1,
+  fontSize: 13,
+  color: colors.text,
+  fontWeight: '500',
+},
 });

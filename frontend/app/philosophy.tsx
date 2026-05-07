@@ -95,6 +95,15 @@ export default function PhilosophyScreen() {
             </View>
           </View>
         </View>
+        {/* Quality commitment */}
+<View style={styles.qualityBox}>
+  <Text style={styles.qualityEmoji}>🍅</Text>
+  <Text style={styles.qualityTitle}>Notre engagement qualité</Text>
+  <Text style={styles.qualityText}>
+    Nous encourageons une cuisine simple et authentique, privilégiant des produits frais,
+    locaux et peu transformés lorsque cela est possible.
+  </Text>
+</View>
 
         {/* Closing */}
         <View style={styles.closingSection}>
@@ -231,6 +240,35 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
   },
+  qualityBox: {
+  backgroundColor: '#EEF9F0',
+  borderRadius: 16,
+  padding: 22,
+  marginBottom: 16,
+  borderWidth: 1,
+  borderColor: '#B7E4C7',
+  alignItems: 'center',
+},
+
+qualityEmoji: {
+  fontSize: 36,
+  marginBottom: 10,
+},
+
+qualityTitle: {
+  fontSize: 20,
+  fontWeight: '700',
+  color: '#2E7D32',
+  marginBottom: 10,
+  textAlign: 'center',
+},
+
+qualityText: {
+  fontSize: 15,
+  color: colors.textLight,
+  lineHeight: 24,
+  textAlign: 'center',
+},
   closingSection: {
     alignItems: 'center',
     backgroundColor: colors.primaryLight + '15',

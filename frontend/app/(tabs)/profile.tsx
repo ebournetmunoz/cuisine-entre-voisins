@@ -129,42 +129,41 @@ export default function ProfileScreen() {
   );
 };
 
-  const handleUpdateLocation = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission refusée', 'Activez la localisation dans les paramètres');
-        return;
-      }
-
-      setLoading(true);
-      const location = await Location.getCurrentPositionAsync({});
-      await updateUser({
-        location: {
-          lat: location.coords.latitude,
-          lng: location.coords.longitude,
-        },
-      });
-      Alert.alert('Succès', 'Position mise à jour');
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible de récupérer la position');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSaveProfile = async () => {
-    try {
-      setLoading(true);
-      await updateUser({ name, bio, phone, address, neighborhood });
-      setEditMode(false);
-      Alert.alert('Succès', 'Profil mis à jour');
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible de mettre à jour le profil');
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+
+    let latitude = null;
+    let longitude = null;
+
+    if (address.trim()) {
+      const geocoded = await Location.geocodeAsync(address);
+
+      if (geocoded.length > 0) {
+        latitude = geocoded[0].latitude;
+        longitude = geocoded[0].longitude;
+      }
     }
-  };
+
+    await updateUser({
+      name,
+      bio,
+      phone,
+      address,
+      neighborhood,
+      latitude,
+      longitude,
+    });
+
+    setEditMode(false);
+
+    Alert.alert('Succès', 'Profil mis à jour');
+  } catch (error) {
+    Alert.alert('Erreur', 'Impossible de mettre à jour le profil');
+  } finally {
+    setLoading(false);
+  }
+};
 
 const pickImage = async () => {
   try {
@@ -273,7 +272,7 @@ const pickImage = async () => {
               <View style={styles.addressSection}>
                 <View style={styles.addressLabelRow}>
                   <Ionicons name="location" size={18} color={colors.primary} />
-                  <Text style={styles.addressLabel}>Adresse (pour les cuisiniers)</Text>
+                  <Text style={styles.addressLabel}>Ville ou adresse</Text>
                 </View>
                 <TextInput
                   style={[styles.editInput, styles.addressInput]}
@@ -349,21 +348,6 @@ const pickImage = async () => {
             </>
           )}
         </View>
-
-        <TouchableOpacity style={styles.menuItem} onPress={handleUpdateLocation}>
-          <View style={styles.menuItemLeft}>
-            <View style={[styles.menuIcon, { backgroundColor: colors.secondary + '20' }]}>
-              <Ionicons name="location-outline" size={20} color={colors.secondary} />
-            </View>
-            <View>
-              <Text style={styles.menuItemText}>Ma position</Text>
-              <Text style={styles.menuItemSubtext}>
-                {user?.location ? 'Position enregistrée' : 'Non définie'}
-              </Text>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-        </TouchableOpacity>
 
         {myMeals.length > 0 && (
           <View style={styles.section}>

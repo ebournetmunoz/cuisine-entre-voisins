@@ -345,8 +345,8 @@ const handleDeleteOrder = (orderId: string) => {
         <TouchableOpacity
           style={[styles.actionButton, styles.messageButton]}
           onPress={() =>
-            router.push(`/messages?userId=${isCook ? item.buyer_id : item.cook_id}` as any)
-          }
+             router.push(`/chat/${isCook ? item.buyer_id : item.cook_id}` as any)
+           }
         >
           <Ionicons name="chatbubble-outline" size={18} color={colors.white} />
           <Text style={styles.actionButtonText}>Contacter</Text>

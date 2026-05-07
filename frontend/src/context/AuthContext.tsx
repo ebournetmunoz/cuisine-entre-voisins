@@ -13,6 +13,8 @@ interface User {
   bio?: string;
   address?: string;  // Full address for cook (private)
   neighborhood?: string;  // Neighborhood for public display
+  latitude?: number;
+  longitude?: number;
   location?: { lat: number; lng: number; address?: string };
   is_cook: boolean;
   rating: number;

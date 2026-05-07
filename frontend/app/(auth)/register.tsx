@@ -47,7 +47,7 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       await register(name.trim(), email.trim(), password, phone.trim() || undefined);
-      router.replace('/(tabs)/index' as any);
+      router.replace('/(tabs)/home' as any);
     } catch (error: any) {
       Alert.alert('Erreur', error.response?.data?.detail || 'Inscription impossible');
     } finally {

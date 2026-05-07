@@ -15,7 +15,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
@@ -113,7 +112,7 @@ export default function ExploreScreen() {
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
   const [selectedRadius, setSelectedRadius] = useState(10);
-  const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('today');
+  const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('all');
   const [showRadiusOptions, setShowRadiusOptions] = useState(false);
   const [showDateOptions, setShowDateOptions] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -123,30 +122,33 @@ export default function ExploreScreen() {
   const refreshCounter = useMealsStore((state) => state.refreshCounter);
 
   const loadLocation = async () => {
-    if (user?.location?.lat && user?.location?.lng) {
-      setUserLocation({
-        lat: user.location.lat,
-        lng: user.location.lng,
-      });
-      return;
-    }
+  if (user?.location?.lat && user?.location?.lng) {
+    setUserLocation({
+      lat: user.location.lat,
+      lng: user.location.lng,
+    });
+    return;
+  }
 
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const location = await Location.getCurrentPositionAsync({});
-        setUserLocation({
-          lat: location.coords.latitude,
-          lng: location.coords.longitude,
-        });
-      }
-    } catch (error) {
-      console.log('Location error:', error);
-    }
-  };
+  if (user?.latitude && user?.longitude) {
+    setUserLocation({
+      lat: user.latitude,
+      lng: user.longitude,
+    });
+    return;
+  }
+
+  setUserLocation(null);
+};
 
   const loadMeals = async () => {
     try {
+    if (!userLocation) {
+  setMeals([]);
+  setLoading(false);
+  setRefreshing(false);
+  return;
+}
       const params: any = {};
 
       if (selectedCategory !== 'Tous') {
@@ -305,7 +307,7 @@ export default function ExploreScreen() {
           <TouchableOpacity style={styles.locationBanner} onPress={loadLocation}>
             <Ionicons name="location-outline" size={18} color={colors.warning} />
             <Text style={styles.locationBannerText}>
-              Activez la localisation pour voir les plats près de chez vous
+              Activez votre position pour voir les plats autour de vous
             </Text>
             <Ionicons name="chevron-forward" size={16} color={colors.warning} />
           </TouchableOpacity>
@@ -318,55 +320,97 @@ export default function ExploreScreen() {
           </View>
         )}
 
-        <View style={styles.filterBlock}>
-          <Text style={styles.filterTitle}>Rayon</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {RADIUS_OPTIONS.map((radius) => (
-              <TouchableOpacity
-                key={radius}
-                style={[
-                  styles.smallChip,
-                  selectedRadius === radius && styles.smallChipActive,
-                ]}
-                onPress={() => setSelectedRadius(radius)}
-              >
-                <Text
-                  style={[
-                    styles.smallChipText,
-                    selectedRadius === radius && styles.smallChipTextActive,
-                  ]}
-                >
-                  {radius} km
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+        <View style={styles.compactFiltersRow}>
+  <TouchableOpacity
+    style={styles.compactFilterButton}
+    onPress={() => {
+      setShowDateOptions(!showDateOptions);
+      setShowRadiusOptions(false);
+    }}
+  >
+    <Ionicons name="calendar-outline" size={16} color={colors.primary} />
+    <Text style={styles.compactFilterText}>
+      {DATE_FILTERS.find((f) => f.key === selectedDateFilter)?.label}
+    </Text>
+    <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
+  </TouchableOpacity>
 
-        <View style={styles.filterBlock}>
-          <Text style={styles.filterTitle}>Jour de disponibilité</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {DATE_FILTERS.map((filter) => (
-              <TouchableOpacity
-                key={filter.key}
-                style={[
-                  styles.dateChip,
-                  selectedDateFilter === filter.key && styles.dateChipActive,
-                ]}
-                onPress={() => setSelectedDateFilter(filter.key)}
-              >
-                <Text
-                  style={[
-                    styles.dateChipText,
-                    selectedDateFilter === filter.key && styles.dateChipTextActive,
-                  ]}
-                >
-                  {filter.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+  <TouchableOpacity
+    style={styles.compactFilterButton}
+    onPress={() => {
+      setShowRadiusOptions(!showRadiusOptions);
+      setShowDateOptions(false);
+    }}
+  >
+    <Ionicons name="navigate-outline" size={16} color={colors.primary} />
+    <Text style={styles.compactFilterText}>
+      Rayon : {selectedRadius} km
+    </Text>
+    <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
+  </TouchableOpacity>
+</View>
+
+{showDateOptions && (
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    contentContainerStyle={styles.dropdownOptions}
+  >
+    {DATE_FILTERS.map((filter) => (
+      <TouchableOpacity
+        key={filter.key}
+        style={[
+          styles.dropdownChip,
+          selectedDateFilter === filter.key && styles.dropdownChipActive,
+        ]}
+        onPress={() => {
+          setSelectedDateFilter(filter.key);
+          setShowDateOptions(false);
+        }}
+      >
+        <Text
+          style={[
+            styles.dropdownChipText,
+            selectedDateFilter === filter.key && styles.dropdownChipTextActive,
+          ]}
+        >
+          {filter.label}
+        </Text>
+      </TouchableOpacity>
+    ))}
+  </ScrollView>
+)}
+
+{showRadiusOptions && (
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    contentContainerStyle={styles.dropdownOptions}
+  >
+    {RADIUS_OPTIONS.map((radius) => (
+      <TouchableOpacity
+        key={radius}
+        style={[
+          styles.dropdownChip,
+          selectedRadius === radius && styles.dropdownChipActive,
+        ]}
+        onPress={() => {
+          setSelectedRadius(radius);
+          setShowRadiusOptions(false);
+        }}
+      >
+        <Text
+          style={[
+            styles.dropdownChipText,
+            selectedRadius === radius && styles.dropdownChipTextActive,
+          ]}
+        >
+          {radius} km
+        </Text>
+      </TouchableOpacity>
+    ))}
+  </ScrollView>
+)}
 
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -19,20 +20,22 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Image
-            source={require('../../assets/logo.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+          <Image source={require('../../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
         </View>
 
-        <View style={styles.welcomeCard}>
-          <Text style={styles.welcomeText}>🍲 Des plats faits maison près de chez vous</Text>
-          <Text style={styles.welcomeSubtext}>
-            Commandez ou proposez facilement des plats entre voisins.
-            {'\n'}Sans commission de l’application, paiement direct entre particuliers.
-         </Text>
-        </View>
+        <ImageBackground
+          source={require('../../assets/images/home-banner.png')}
+          style={styles.welcomeCard}
+          imageStyle={styles.welcomeBackground}
+        >
+          <View style={styles.welcomeOverlay}>
+            <Text style={styles.welcomeText}>🍲 Des plats faits maison près de chez vous</Text>
+            <Text style={styles.welcomeSubtext}>
+              Commandez ou proposez facilement des plats entre voisins.
+              {'\n'}Sans commission de l’application, paiement direct entre particuliers.
+            </Text>
+          </View>
+        </ImageBackground>
 
         <View style={styles.quickActions}>
           <TouchableOpacity
@@ -117,28 +120,49 @@ const styles = StyleSheet.create({
   logoImage: { width: 180, height: 150 },
 
   welcomeCard: {
-    backgroundColor: colors.card,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  welcomeText: {
-    fontSize: 21,
-    fontWeight: '700',
-    color: colors.text,
-    lineHeight: 28,
-  },
-  welcomeSubtext: {
-    fontSize: 15,
-    color: colors.textLight,
-    marginTop: 10,
-    lineHeight: 22,
-  },
+  borderRadius: 20,
+  marginBottom: 20,
+  overflow: 'hidden',
+  minHeight: 240,
+  shadowColor: colors.black,
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.08,
+  shadowRadius: 12,
+  elevation: 4,
+},
+
+welcomeBackground: {
+  borderRadius: 20,
+  opacity: 1,
+},
+
+welcomeOverlay: {
+  flex: 1,
+  justifyContent: 'center',
+  backgroundColor: 'rgba(0,0,0,0.28)',
+  padding: 20,
+},
+
+welcomeText: {
+  fontSize: 21,
+  fontWeight: '800',
+  color: '#FFD166',
+  lineHeight: 28,
+  textShadowColor: 'rgba(0,0,0,0.45)',
+  textShadowOffset: { width: 0, height: 2 },
+  textShadowRadius: 3,
+},
+
+welcomeSubtext: {
+  fontSize: 15,
+  color: '#FFFFFF',
+  marginTop: 10,
+  lineHeight: 22,
+  fontWeight: '600',
+  textShadowColor: 'rgba(0,0,0,0.55)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 2,
+},
 
   quickActions: {
     flexDirection: 'row',

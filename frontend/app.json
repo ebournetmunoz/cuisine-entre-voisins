@@ -8,6 +8,7 @@
     "scheme": "frontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -16,6 +17,7 @@
         "NSLocationWhenInUseUsageDescription": "Trouvez les plats près de chez vous"
       }
     },
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -28,17 +30,21 @@
         "WRITE_EXTERNAL_STORAGE",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
+        "POST_NOTIFICATIONS",
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE"
       ]
     },
+
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+
     "plugins": [
       "expo-router",
+
       [
         "expo-splash-screen",
         {
@@ -48,6 +54,7 @@
           "backgroundColor": "#C75B3D"
         }
       ],
+
       [
         "expo-image-picker",
         {
@@ -55,12 +62,14 @@
           "cameraPermission": "Prenez une photo de votre plat"
         }
       ],
+
       [
         "expo-location",
         {
           "locationWhenInUsePermission": "Trouvez les plats près de chez vous"
         }
       ],
+
       [
         "expo-notifications",
         {
@@ -68,8 +77,10 @@
           "color": "#C75B3D"
         }
       ],
+
       "@react-native-community/datetimepicker"
     ],
+
     "experiments": {
       "typedRoutes": true
     }

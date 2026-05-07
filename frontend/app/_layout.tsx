@@ -1,9 +1,32 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
 import { AuthProvider } from '../src/context/AuthContext';
 
 export default function RootLayout() {
+  useEffect(() => {
+    const registerForPushNotifications = async () => {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        console.log('Permission notification refusée');
+        return;
+      }
+
+      console.log('Notifications autorisées');
+    };
+
+    registerForPushNotifications();
+  }, []);
+
   return (
     <AuthProvider>
       <StatusBar style="dark" />
