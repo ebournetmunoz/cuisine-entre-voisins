@@ -28,7 +28,7 @@ export default function TabsLayout() {
     };
 
     checkUnreadMessages();
-    const interval = setInterval(checkUnreadMessages, 30000);
+    const interval = setInterval(checkUnreadMessages, 5000);
     return () => clearInterval(interval);
   }, [user]);
 
@@ -50,7 +50,8 @@ export default function TabsLayout() {
           // Pour les clients : commande confirmée par le cuisinier
 if (
   order.buyer_id === user.id &&
-  (order.status === 'confirmed' || order.status === 'paid')
+  (order.status === 'confirmed' || order.status === 'paid') &&
+  order.buyer_seen_confirmed !== true
 ) {
   pendingCount++;
 }
@@ -63,7 +64,7 @@ if (
     };
 
     checkPendingOrders();
-    const interval = setInterval(checkPendingOrders, 30000);
+    const interval = setInterval(checkPendingOrders, 5000);
     return () => clearInterval(interval);
   }, [user]);
 
@@ -142,23 +143,23 @@ if (
         }}
       />
       <Tabs.Screen
-        name="messages"
-        options={{
-          title: 'Chat',
-          tabBarIcon: ({ color, size }) => (
-            <View>
-              <Ionicons name="chatbubble-outline" size={22} color={color} />
-              {(unreadCount + pendingOrdersCount) > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>
-                    {(unreadCount + pendingOrdersCount) > 9 ? '9+' : unreadCount + pendingOrdersCount}
-                  </Text>
-                </View>
-              )}
-            </View>
-          ),
-        }}
-      />
+  name="messages"
+  options={{
+    title: 'Chat',
+    tabBarIcon: ({ color, size }) => (
+      <View>
+        <Ionicons name="chatbubble-outline" size={22} color={color} />
+        {unreadCount > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </Text>
+          </View>
+        )}
+      </View>
+    ),
+  }}
+/>
       <Tabs.Screen
         name="profile"
         options={{

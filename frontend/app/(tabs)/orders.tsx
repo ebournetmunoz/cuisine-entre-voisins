@@ -48,6 +48,7 @@ interface Order {
   is_cook: boolean;
   has_review?: boolean;
   has_cook_review?: boolean;
+  buyer_seen_confirmed?: boolean;
 }
 
 export default function OrdersScreen() {
@@ -64,17 +65,43 @@ export default function OrdersScreen() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const loadOrders = async () => {
-    try {
-      const data = await api.getOrders();
-      setOrders(data);
-    } catch (error) {
-      console.log('Load orders error:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+ const loadOrders = async () => {
+  try {
+    const data = await api.getOrders();
+
+    setOrders(data);
+
+    if (activeTab === 'buyer') {
+      markConfirmedOrdersAsSeen(data);
     }
-  };
+  } catch (error) {
+    console.log('Load orders error:', error);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
+
+const markConfirmedOrdersAsSeen = async (ordersList: Order[]) => {
+  const unseenConfirmedOrders = ordersList.filter(
+    (order) =>
+      !order.is_cook &&
+      (order.status === 'confirmed' || order.status === 'paid') &&
+      order.buyer_seen_confirmed !== true
+  );
+
+  if (unseenConfirmedOrders.length === 0) return;
+
+  try {
+    await Promise.all(
+      unseenConfirmedOrders.map((order) => api.markOrderSeen(order.id))
+    );
+
+    loadOrders();
+  } catch (error) {
+    console.log('Mark orders seen error:', error);
+  }
+};
 
   useEffect(() => {
     loadOrders();

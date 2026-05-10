@@ -46,7 +46,6 @@ export default function AddMealScreen() {
   const [isVegetarian, setIsVegetarian] = useState(false);
   const [isVegan, setIsVegan] = useState(false);
   const [containerProvided, setContainerProvided] = useState(false);
-  const [bagProvided, setBagProvided] = useState(false);
   const [bringContainer, setBringContainer] = useState(false);
   const [collectionInstructions, setCollectionInstructions] = useState('');
   const [loading, setLoading] = useState(false);
@@ -294,7 +293,6 @@ export default function AddMealScreen() {
         is_vegan: isVegan,
         is_free: isFree,
         container_provided: containerProvided,
-        bag_provided: bagProvided,
         bring_container: bringContainer,
         collection_instructions: collectionInstructions.trim(),
       };
@@ -315,7 +313,6 @@ export default function AddMealScreen() {
       setIsVegetarian(false);
       setIsVegan(false);
       setContainerProvided(false);
-      setBagProvided(false);
       setBringContainer(false);
       setCollectionInstructions('');
       setIsFree(false);
@@ -722,22 +719,6 @@ export default function AddMealScreen() {
                     style={[styles.packagingText, containerProvided && styles.packagingTextActive]}
                   >
                     Récipient fourni
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.packagingOption, bagProvided && styles.packagingOptionActive]}
-                onPress={() => setBagProvided(!bagProvided)}
-              >
-                <Ionicons
-                  name={bagProvided ? 'checkbox' : 'square-outline'}
-                  size={22}
-                  color={bagProvided ? colors.primary : colors.textMuted}
-                />
-                <View style={styles.packagingTextContainer}>
-                  <Text style={[styles.packagingText, bagProvided && styles.packagingTextActive]}>
-                    Sac de transport fourni
                   </Text>
                 </View>
               </TouchableOpacity>

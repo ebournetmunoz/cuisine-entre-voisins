@@ -1014,6 +1014,7 @@ async def create_order(order_data: OrderCreate, user = Depends(get_current_user)
         "service_fee": round(service_fee, 2),
         "total_price": round(total_price, 2),
         "status": "pending",
+        "buyer_seen_confirmed": True,
         "message": order_data.message,
         "payment_session_id": None,
         "created_at": datetime.utcnow()
@@ -1083,7 +1084,8 @@ async def get_orders(user = Depends(get_current_user)):
         "created_at": order["created_at"],
         "is_cook": order["cook_id"] == str(user["_id"]),
         "has_review": order.get("has_review", False),
-        "has_cook_review": order.get("has_cook_review", False)
+        "has_cook_review": order.get("has_cook_review", False),
+        "buyer_seen_confirmed": order.get("buyer_seen_confirmed", True)
     } for order in orders]
 
 @api_router.put("/orders/{order_id}/status")
@@ -1108,7 +1110,15 @@ async def update_order_status(order_id: str, status: str, user = Depends(get_cur
     if status in ["cancelled", "completed"] and order["cook_id"] != user_id and order["buyer_id"] != user_id:
         raise HTTPException(status_code=403, detail="Non autorisé")
 
-    await db.orders.update_one({"_id": ObjectId(order_id)}, {"$set": {"status": status}})
+        update_data = {"status": status}
+
+    if status in ["confirmed", "paid"]:
+        update_data["buyer_seen_confirmed"] = False
+
+    await db.orders.update_one(
+        {"_id": ObjectId(order_id)},
+        {"$set": update_data}
+    )
 
     if status == "cancelled" and order["status"] not in ["cancelled", "completed"]:
         await db.meals.update_one(
@@ -1130,6 +1140,28 @@ async def update_order_status(order_id: str, status: str, user = Depends(get_cur
         await notify_user(notify_to, title, body, {"type": "order_status", "order_id": order_id, "status": status})
 
     return {"message": "Statut mis à jour", "status": status}
+
+@api_router.put("/orders/{order_id}/seen")
+async def mark_order_seen(order_id: str, user = Depends(get_current_user)):
+    try:
+        order = await db.orders.find_one({"_id": ObjectId(order_id)})
+    except:
+        raise HTTPException(status_code=404, detail="Commande non trouvée")
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Commande non trouvée")
+
+    user_id = str(user["_id"])
+
+    if order["buyer_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Non autorisé")
+
+    await db.orders.update_one(
+        {"_id": ObjectId(order_id)},
+        {"$set": {"buyer_seen_confirmed": True}}
+    )
+
+    return {"message": "Commande vue"}
 
 @api_router.delete("/orders/{order_id}")
 async def delete_order(order_id: str, user = Depends(get_current_user)):

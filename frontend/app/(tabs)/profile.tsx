@@ -209,13 +209,19 @@ const pickImage = async () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>Mon Profil</Text>
-          <TouchableOpacity onPress={() => setEditMode(!editMode)}>
-            <Ionicons
-              name={editMode ? 'arrow-back' : 'create-outline'}
-              size={24}
-              color={colors.primary}
-            />
-          </TouchableOpacity>
+          <TouchableOpacity
+  style={styles.editProfileButton}
+  onPress={() => setEditMode(!editMode)}
+>
+  <Ionicons
+    name={editMode ? 'arrow-back' : 'create-outline'}
+    size={18}
+    color={colors.primary}
+  />
+  <Text style={styles.editProfileText}>
+    {editMode ? 'Retour' : 'Modifier'}
+  </Text>
+</TouchableOpacity>
         </View>
 
 <View style={styles.profileCard}>
@@ -433,6 +439,23 @@ deleteAccountText: {
     fontWeight: '700',
     color: colors.text,
   },
+  editProfileButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 6,
+  paddingHorizontal: 12,
+  paddingVertical: 8,
+  borderRadius: 18,
+  borderWidth: 1,
+  borderColor: colors.primary,
+  backgroundColor: '#FFF7F3',
+},
+
+editProfileText: {
+  fontSize: 14,
+  fontWeight: '700',
+  color: colors.primary,
+},
   profileCard: {
     backgroundColor: colors.card,
     marginHorizontal: 16,

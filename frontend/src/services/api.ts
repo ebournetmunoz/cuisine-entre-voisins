@@ -91,6 +91,11 @@ export const api = {
     return response.data;
   },
 
+  markOrderSeen: async (orderId: string) => {
+  const response = await apiClient.put(`/orders/${orderId}/seen`);
+  return response.data;
+},
+
   // Payments
   createCheckoutSession: async (orderId: string, originUrl: string) => {
     const response = await apiClient.post('/payments/create-checkout', { 
