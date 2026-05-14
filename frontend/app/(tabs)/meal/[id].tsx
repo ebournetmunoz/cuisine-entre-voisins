@@ -45,6 +45,7 @@ interface Meal {
   bag_provided?: boolean;
   bring_container?: boolean;
   collection_instructions?: string;
+  delivery_available?: boolean;
 }
 
 interface Review {
@@ -285,6 +286,18 @@ export default function MealDetailScreen() {
   <Ionicons name="cash-outline" size={18} color={colors.success} />
   <Text style={styles.paymentInfoText}>
     Paiement direct au retrait, après confirmation du cuisinier
+  </Text>
+</View>
+<View style={styles.deliveryInfoBox}>
+  <Ionicons
+    name={meal.delivery_available ? 'car-outline' : 'walk-outline'}
+    size={18}
+    color={meal.delivery_available ? colors.primary : colors.textMuted}
+  />
+  <Text style={styles.deliveryInfoText}>
+    {meal.delivery_available
+      ? 'Livraison possible à proximité, à organiser via le chat'
+      : 'Retrait sur place uniquement'}
   </Text>
 </View>
 
@@ -1271,6 +1284,22 @@ paymentInfoBox: {
 },
 
 paymentInfoText: {
+  flex: 1,
+  fontSize: 13,
+  color: colors.text,
+  fontWeight: '500',
+},
+deliveryInfoBox: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: colors.primary + '10',
+  borderRadius: 12,
+  padding: 12,
+  marginTop: 12,
+  gap: 8,
+},
+
+deliveryInfoText: {
   flex: 1,
   fontSize: 13,
   color: colors.text,

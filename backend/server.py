@@ -229,6 +229,7 @@ class MealCreate(BaseModel):
     bag_provided: bool = True
     bring_container: bool = False
     collection_instructions: str = ""
+    delivery_available: bool = False
     is_free: bool = False
 
 class MealResponse(BaseModel):
@@ -734,6 +735,7 @@ async def create_meal(meal_data: MealCreate, user = Depends(get_current_user)):
         "bag_provided": meal_data.bag_provided,
         "bring_container": meal_data.bring_container,
         "collection_instructions": meal_data.collection_instructions,
+        "delivery_available": meal_data.delivery_available,
         "is_active": True,
         "created_at": datetime.utcnow()
     }
@@ -765,6 +767,7 @@ async def create_meal(meal_data: MealCreate, user = Depends(get_current_user)):
         "bag_provided": meal_doc.get("bag_provided", True),
         "bring_container": meal_doc.get("bring_container", False),
         "collection_instructions": meal_doc.get("collection_instructions", ""),
+        "delivery_available": meal_doc.get("delivery_available", False),
         "is_active": meal_doc["is_active"],
         "created_at": meal_doc["created_at"]
     }
@@ -809,6 +812,7 @@ async def get_meals(
             "distance": None,
             "city": meal.get("city", ""),
             "neighborhood": meal.get("neighborhood", ""),
+            "delivery_available": meal.get("delivery_available", False),
             "created_at": meal["created_at"],
             "is_active": meal.get("is_active", True)
         }
@@ -895,6 +899,7 @@ async def get_meal(meal_id: str, user = Depends(get_optional_user)):
         "bag_provided": meal.get("bag_provided", True),
         "bring_container": meal.get("bring_container", False),
         "collection_instructions": meal.get("collection_instructions", ""),
+        "delivery_available": meal.get("delivery_available", False),
         "created_at": meal["created_at"],
         "is_active": meal["is_active"]
     }
@@ -970,6 +975,7 @@ async def get_my_meals(user = Depends(get_current_user)):
             "is_vegetarian": meal.get("is_vegetarian", False),
             "is_vegan": meal.get("is_vegan", False),
             "location": meal.get("location"),
+            "delivery_available": meal.get("delivery_available", False),
             "created_at": meal["created_at"],
             "is_active": meal.get("is_active", True),
             "is_visible": is_visible
@@ -1107,10 +1113,13 @@ async def update_order_status(order_id: str, status: str, user = Depends(get_cur
     if status in ["confirmed", "ready"] and order["cook_id"] != user_id:
         raise HTTPException(status_code=403, detail="Non autorisé")
 
-    if status in ["cancelled", "completed"] and order["cook_id"] != user_id and order["buyer_id"] != user_id:
+    if status == "completed" and order["cook_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Seul le cuisinier peut terminer la commande")
+
+    if status == "cancelled" and order["cook_id"] != user_id and order["buyer_id"] != user_id:
         raise HTTPException(status_code=403, detail="Non autorisé")
 
-        update_data = {"status": status}
+    update_data = {"status": status}
 
     if status in ["confirmed", "paid"]:
         update_data["buyer_seen_confirmed"] = False
@@ -1137,7 +1146,11 @@ async def update_order_status(order_id: str, status: str, user = Depends(get_cur
     if status in notification_messages:
         title, body = notification_messages[status]
         notify_to = order["buyer_id"] if order["cook_id"] == user_id else order["cook_id"]
-        await notify_user(notify_to, title, body, {"type": "order_status", "order_id": order_id, "status": status})
+        await notify_user(notify_to, title, body, {
+            "type": "order_status",
+            "order_id": order_id,
+            "status": status
+        })
 
     return {"message": "Statut mis à jour", "status": status}
 

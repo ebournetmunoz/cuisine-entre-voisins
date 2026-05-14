@@ -47,6 +47,7 @@ export default function AddMealScreen() {
   const [isVegan, setIsVegan] = useState(false);
   const [containerProvided, setContainerProvided] = useState(false);
   const [bringContainer, setBringContainer] = useState(false);
+  const [deliveryAvailable, setDeliveryAvailable] = useState(false);
   const [collectionInstructions, setCollectionInstructions] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -295,6 +296,7 @@ export default function AddMealScreen() {
         container_provided: containerProvided,
         bring_container: bringContainer,
         collection_instructions: collectionInstructions.trim(),
+        delivery_available: deliveryAvailable,
       };
 
       await api.createMeal(mealData);
@@ -314,6 +316,7 @@ export default function AddMealScreen() {
       setIsVegan(false);
       setContainerProvided(false);
       setBringContainer(false);
+      setDeliveryAvailable(false);
       setCollectionInstructions('');
       setIsFree(false);
 
@@ -740,7 +743,34 @@ export default function AddMealScreen() {
               </TouchableOpacity>
             </View>
           </View>
+<View style={styles.section}>
+  <Text style={styles.label}>Remise du plat</Text>
 
+  <View style={styles.packagingContainer}>
+    <TouchableOpacity
+      style={[styles.packagingOption, deliveryAvailable && styles.packagingOptionActive]}
+      onPress={() => setDeliveryAvailable(!deliveryAvailable)}
+    >
+      <Ionicons
+        name={deliveryAvailable ? 'checkbox' : 'square-outline'}
+        size={22}
+        color={deliveryAvailable ? colors.primary : colors.textMuted}
+      />
+
+      <View style={styles.packagingTextContainer}>
+        <Text
+          style={[styles.packagingText, deliveryAvailable && styles.packagingTextActive]}
+        >
+          Livraison possible à proximité
+        </Text>
+
+        <Text style={styles.deliveryHint}>
+          À organiser directement avec le cuisinier via le chat.
+        </Text>
+      </View>
+    </TouchableOpacity>
+  </View>
+</View>
           <View style={styles.section}>
             <Text style={styles.label}>Instructions de collecte</Text>
             <TextInput
@@ -1125,5 +1155,10 @@ const styles = StyleSheet.create({
   packagingTextActive: {
     color: colors.primary,
     fontWeight: '500',
+  },
+  deliveryHint: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 4,
   },
 });
