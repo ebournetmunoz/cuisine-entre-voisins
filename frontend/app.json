@@ -17,7 +17,8 @@
       }
     },
     "android": {
-      "versionCode": 2,
+  "package": "com.cuisineentrevoisins.mobile",
+  "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -79,7 +80,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "149f9bb9-1469-4043-8773-aa227258e9fa"
+        "projectId": "e360402c-a23a-4a39-a6fc-03cd071a03dd"
       }
     }
   }

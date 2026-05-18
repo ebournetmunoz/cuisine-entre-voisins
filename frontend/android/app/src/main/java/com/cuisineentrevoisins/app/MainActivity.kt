@@ -1,4 +1,4 @@
-package com.monvoisincuisine.app
+package com.cuisineentrevoisins.mobile
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
