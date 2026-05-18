@@ -42,7 +42,7 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
 stripe.api_key = STRIPE_API_KEY
 
 # Create the main app
-app = FastAPI(title="Cuisine entre Voisins API")
+app = FastAPI(title="TEST CUISINE ENTRE VOISINS")
 
 # CORS (fix complet pour le dev)
 app.add_middleware(
