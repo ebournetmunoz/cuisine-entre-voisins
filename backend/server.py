@@ -42,7 +42,7 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
 stripe.api_key = STRIPE_API_KEY
 
 # Create the main app
-app = FastAPI(title="Mon Voisin Cuisine API")
+app = FastAPI(title="Cuisine entre Voisins API")
 
 # CORS (fix complet pour le dev)
 app.add_middleware(
@@ -1809,7 +1809,7 @@ async def get_cook_pending_reviews(user = Depends(get_current_user)):
 
 @api_router.get("/health")
 async def health_check():
-    return {"status": "ok", "service": "Mon Voisin Cuisine API"}
+    return {"status": "ok", "service": "Cuisine entre voisins API"}
 
 @api_router.get("/config/fees")
 async def get_fees_config():
@@ -1866,12 +1866,12 @@ async def notify_user(user_id: str, title: str, body: str, data: dict = None):
 
 @api_router.get("/download-logo")
 async def download_logo():
-    logo_path = "/app/logo_mon_voisin_cuisine.png"
+    logo_path = "/app/logo_cuisine_entre_voisins.png"
     if os.path.exists(logo_path):
         return FileResponse(
             logo_path,
             media_type="image/png",
-            filename="mon_voisin_cuisine_logo.png"
+            filename="cuisine_entre_voisins_logo.png"
         )
     else:
         raise HTTPException(status_code=404, detail="Logo not found")
