@@ -17,8 +17,8 @@
       }
     },
     "android": {
-  "package": "com.cuisineentrevoisins.mobile",
-  "versionCode": 5,
+      "package": "com.cuisineentrevoisins.mobile",
+      "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -72,7 +72,8 @@
           "color": "#C75B3D"
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

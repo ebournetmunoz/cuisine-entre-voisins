@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
 import { colors } from '../src/theme/colors';
@@ -19,13 +19,25 @@ export default function Index() {
   }, [loading, user]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.logo}>🍽️</Text>
-      <Text style={styles.title}>Cuisine entre voisins</Text>
-      <Text style={styles.subtitle}>La cuisine du cœur, près de chez vous</Text>
-      <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
-    </View>
-  );
+  <View style={styles.container}>
+    <Image
+      source={require('../assets/images/logo.png')}
+      style={styles.logoImage}
+      resizeMode="contain"
+    />
+
+    <Text style={styles.title}>Cuisine entre voisins</Text>
+    <Text style={styles.subtitle}>
+      La cuisine du cœur, près de chez vous
+    </Text>
+
+    <ActivityIndicator
+      size="large"
+      color={colors.primary}
+      style={styles.loader}
+    />
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
@@ -36,10 +48,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
-  logo: {
-    fontSize: 80,
-    marginBottom: 16,
-  },
+  logoImage: {
+  width: 260,
+  height: 260,
+  marginBottom: -10,
+ },
   title: {
     fontSize: 36,
     fontWeight: '700',
