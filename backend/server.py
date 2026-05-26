@@ -846,8 +846,8 @@ async def get_meals(
 
             from math import radians, sin, cos, sqrt, atan2
             R = 6371
-            lat1, lng1 = radians(lat), radians(lng)
-            lat2, lng2 = radians(meal_loc["lat"]), radians(meal_loc["lng"])
+            lat1, lng1 = radians(float(lat)), radians(float(lng))
+            lat2, lng2 = radians(float(meal_loc["lat"])), radians(float(meal_loc["lng"]))
             dlat, dlng = lat2 - lat1, lng2 - lng1
             a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlng / 2) ** 2
             c = 2 * atan2(sqrt(a), sqrt(1 - a))
