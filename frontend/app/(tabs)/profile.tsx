@@ -133,32 +133,38 @@ export default function ProfileScreen() {
   try {
     setLoading(true);
 
-    let latitude = null;
-    let longitude = null;
+    let latitude = user?.latitude ?? null;
+    let longitude = user?.longitude ?? null;
 
-    if (address.trim()) {
-      const geocoded = await Location.geocodeAsync(address);
+    const cleanAddress = address.trim();
 
-      if (geocoded.length > 0) {
-        latitude = geocoded[0].latitude;
-        longitude = geocoded[0].longitude;
+    if (cleanAddress) {
+      try {
+        const geocoded = await Location.geocodeAsync(cleanAddress);
+
+        if (geocoded.length > 0) {
+          latitude = geocoded[0].latitude;
+          longitude = geocoded[0].longitude;
+        }
+      } catch (geoError) {
+        console.log('Geocoding error:', geoError);
       }
     }
 
     await updateUser({
-      name,
-      bio,
-      phone,
-      address,
-      neighborhood,
+      name: name.trim(),
+      bio: bio.trim(),
+      phone: phone.trim(),
+      address: cleanAddress,
+      neighborhood: neighborhood.trim(),
       latitude,
       longitude,
     });
 
     setEditMode(false);
-
     Alert.alert('Succès', 'Profil mis à jour');
   } catch (error) {
+    console.log('Update profile error:', error);
     Alert.alert('Erreur', 'Impossible de mettre à jour le profil');
   } finally {
     setLoading(false);

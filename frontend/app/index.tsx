@@ -26,7 +26,6 @@ export default function Index() {
       resizeMode="contain"
     />
 
-    <Text style={styles.title}>Cuisine entre voisins</Text>
     <Text style={styles.subtitle}>
       La cuisine du cœur, près de chez vous
     </Text>
@@ -53,12 +52,7 @@ const styles = StyleSheet.create({
   height: 260,
   marginBottom: -10,
  },
-  title: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: 8,
-  },
+  
   subtitle: {
     fontSize: 16,
     color: colors.textLight,

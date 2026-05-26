@@ -454,6 +454,8 @@ async def login(credentials: UserLogin):
             "avatar": user.get("avatar"),
             "bio": user.get("bio"),
             "location": user.get("location"),
+            "latitude": user.get("location", {}).get("lat") if user.get("location") else None,
+            "longitude": user.get("location", {}).get("lng") if user.get("location") else None,
             "address": user.get("address"),
             "neighborhood": user.get("neighborhood"),
             "is_cook": user.get("is_cook", False),
@@ -473,6 +475,8 @@ async def get_me(user = Depends(get_current_user)):
         "avatar": user.get("avatar"),
         "bio": user.get("bio"),
         "location": user.get("location"),
+        "latitude": user.get("location", {}).get("lat") if user.get("location") else None,
+        "longitude": user.get("location", {}).get("lng") if user.get("location") else None,
         "address": user.get("address"),
         "neighborhood": user.get("neighborhood"),
         "is_cook": user.get("is_cook", False),
@@ -730,7 +734,18 @@ async def create_meal(meal_data: MealCreate, user = Depends(get_current_user)):
         "allergens": meal_data.allergens,
         "is_vegetarian": meal_data.is_vegetarian,
         "is_vegan": meal_data.is_vegan,
-        "location": user.get("location"),
+        "location": {
+    "lat": user.get("latitude") or (
+        user.get("location", {}).get("lat")
+        if user.get("location")
+        else None
+    ),
+    "lng": user.get("longitude") or (
+        user.get("location", {}).get("lng")
+        if user.get("location")
+        else None
+    ),
+},
         "container_provided": meal_data.container_provided,
         "bag_provided": meal_data.bag_provided,
         "bring_container": meal_data.bring_container,

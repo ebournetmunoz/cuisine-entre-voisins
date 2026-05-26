@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "Cuisine entre Voisins",
@@ -7,7 +8,8 @@
     "icon": "./assets/images/icon.png",
     "scheme": "frontend",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
+
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -16,6 +18,7 @@
         "NSLocationWhenInUseUsageDescription": "Trouvez les plats près de chez vous"
       }
     },
+
     "android": {
       "package": "com.cuisineentrevoisins.mobile",
       "versionCode": 5,
@@ -36,22 +39,23 @@
         "android.permission.RECORD_AUDIO"
       ]
     },
+
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+
     "plugins": [
       "expo-router",
+
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#C75B3D"
+          "backgroundColor": "#FFFFFF"
         }
       ],
+
       [
         "expo-image-picker",
         {
@@ -59,12 +63,14 @@
           "cameraPermission": "Prenez une photo de votre plat"
         }
       ],
+
       [
         "expo-location",
         {
           "locationWhenInUsePermission": "Trouvez les plats près de chez vous"
         }
       ],
+
       [
         "expo-notifications",
         {
@@ -72,12 +78,15 @@
           "color": "#C75B3D"
         }
       ],
+
       "@react-native-community/datetimepicker",
       "expo-web-browser"
     ],
+
     "experiments": {
       "typedRoutes": true
     },
+
     "extra": {
       "router": {},
       "eas": {

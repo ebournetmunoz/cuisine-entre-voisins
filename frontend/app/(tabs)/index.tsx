@@ -143,12 +143,7 @@ export default function ExploreScreen() {
 
   const loadMeals = async () => {
     try {
-    if (!userLocation) {
-  setMeals([]);
-  setLoading(false);
-  setRefreshing(false);
-  return;
-}
+    
       const params: any = {};
 
       if (selectedCategory !== 'Tous') {
