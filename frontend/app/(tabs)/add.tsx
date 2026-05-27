@@ -40,8 +40,6 @@ export default function AddMealScreen() {
   const [selectedTime, setSelectedTime] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [address, setAddress] = useState('');
-  const [neighborhood, setNeighborhood] = useState('');
   const [allergens, setAllergens] = useState('');
   const [isVegetarian, setIsVegetarian] = useState(false);
   const [isVegan, setIsVegan] = useState(false);
@@ -51,15 +49,6 @@ export default function AddMealScreen() {
   const [collectionInstructions, setCollectionInstructions] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  useEffect(() => {
-  if (user?.address) {
-    setAddress(user.address);
-  }
-
-  if (user?.neighborhood) {
-    setNeighborhood(user.neighborhood);
-  }
-}, [user]);
 
   const formatDate = (date?: Date | null) => {
     if (!date) return '';
@@ -98,7 +87,7 @@ export default function AddMealScreen() {
         }
 
         const result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ['images'],
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: false,
           quality: 0.7,
           base64: true,
@@ -129,7 +118,7 @@ export default function AddMealScreen() {
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: false,
           quality: 0.7,
           base64: true,
@@ -244,34 +233,11 @@ export default function AddMealScreen() {
       return;
     }
 
-    if (!address.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer votre adresse ou quartier');
-      return;
-    }
-
     setLoading(true);
     setSuccessMessage('');
 
     try {
-      if (!user?.location) {
-        try {
-          const { status } = await Location.requestForegroundPermissionsAsync();
-
-          if (status === 'granted') {
-            const location = await Location.getCurrentPositionAsync({});
-
-            await updateUser({
-              location: {
-                lat: location.coords.latitude,
-                lng: location.coords.longitude,
-              },
-            });
-          }
-        } catch (locError) {
-          console.log('Location error:', locError);
-        }
-      }
-
+      
       const availableDate = selectedDate.toLocaleDateString('fr-FR');
       const availableTime = formatTime(selectedTime);
 
@@ -284,8 +250,6 @@ export default function AddMealScreen() {
         images,
         available_date: availableDate,
         available_time: availableTime,
-        address: address.trim(),
-        neighborhood: neighborhood.trim(),
         allergens: allergens
           .split(',')
           .map((a) => a.trim())
@@ -309,8 +273,6 @@ export default function AddMealScreen() {
       setImages([]);
       setSelectedDate(null);
       setSelectedTime(null);
-      setAddress('');
-      setNeighborhood('');
       setAllergens('');
       setIsVegetarian(false);
       setIsVegan(false);
@@ -621,50 +583,6 @@ export default function AddMealScreen() {
               is24Hour={true}
             />
           )}
-
-          <View style={styles.section}>
-            <Text style={styles.label}>Adresse complète *</Text>
-            <View style={styles.addressInputContainer}>
-              <Ionicons
-                name="location"
-                size={20}
-                color={colors.primary}
-                style={styles.addressIcon}
-              />
-              <TextInput
-                style={styles.addressInput}
-                placeholder="Ex : 12 rue de la Paix, 66000 Perpignan"
-                placeholderTextColor={colors.textMuted}
-                value={address}
-                onChangeText={setAddress}
-              />
-            </View>
-
-            <Text style={[styles.label, { marginTop: 14 }]}>Quartier visible publiquement</Text>
-            <View style={styles.addressInputContainer}>
-              <Ionicons
-                name="business-outline"
-                size={20}
-                color={colors.primary}
-                style={styles.addressIcon}
-              />
-              <TextInput
-                style={styles.addressInput}
-                placeholder="Ex : Centre-ville, Saint-Jacques..."
-                placeholderTextColor={colors.textMuted}
-                value={neighborhood}
-                onChangeText={setNeighborhood}
-              />
-            </View>
-
-            <View style={styles.addressHintContainer}>
-              <Ionicons name="shield-checkmark" size={14} color={colors.success} />
-              <Text style={styles.addressHintSecure}>
-                Seuls la ville et le quartier seront visibles. L'adresse complète sera partagée
-                après confirmation de la commande.
-              </Text>
-            </View>
-          </View>
 
           <View style={styles.section}>
             <Text style={styles.label}>Allergènes</Text>
