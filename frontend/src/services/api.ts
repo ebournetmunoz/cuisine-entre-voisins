@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+const BACKEND_URL = 'https://cuisine-entre-voisins.onrender.com';
+
+console.log('BACKEND_URL =', BACKEND_URL);
 
 const apiClient = axios.create({
   baseURL: `${BACKEND_URL}/api`,
