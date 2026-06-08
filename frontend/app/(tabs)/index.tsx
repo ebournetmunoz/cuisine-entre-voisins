@@ -11,10 +11,13 @@ import {
   Image,
   Dimensions,
   ScrollView,
+  Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
@@ -122,23 +125,48 @@ export default function ExploreScreen() {
   const refreshCounter = useMealsStore((state) => state.refreshCounter);
 
   const loadLocation = async () => {
-  if (user?.location?.lat && user?.location?.lng) {
-    setUserLocation({
-      lat: user.location.lat,
-      lng: user.location.lng,
-    });
-    return;
-  }
+  try {
+    const permission = await Location.getForegroundPermissionsAsync();
 
-  if (user?.latitude && user?.longitude) {
-    setUserLocation({
-      lat: user.latitude,
-      lng: user.longitude,
-    });
-    return;
-  }
+    console.log('PERMISSION =', permission);
 
-  setUserLocation(null);
+    if (permission.status !== 'granted') {
+      const request = await Location.requestForegroundPermissionsAsync();
+
+      console.log('REQUEST =', request);
+
+      if (request.status !== 'granted') {
+        Alert.alert(
+          'Autorisation requise',
+          'Paramètres > Autorisations > Position > Autoriser lorsque l’application est utilisée',
+          [
+            { text: 'Annuler', style: 'cancel' },
+            {
+              text: 'Ouvrir les paramètres',
+              onPress: () => Linking.openSettings(),
+            },
+          ]
+        );
+
+        setUserLocation(null);
+        return;
+      }
+    }
+
+    const location = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High,
+    });
+
+    console.log('USER LOCATION =', location);
+
+    setUserLocation({
+      lat: location.coords.latitude,
+      lng: location.coords.longitude,
+    });
+  } catch (error) {
+    console.log('Location error:', error);
+    setUserLocation(null);
+  }
 };
 
   const loadMeals = async () => {

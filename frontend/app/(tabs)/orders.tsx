@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending: { label: 'En attente', color: colors.warning },
@@ -103,9 +103,11 @@ const markConfirmedOrdersAsSeen = async (ordersList: Order[]) => {
   }
 };
 
-  useEffect(() => {
+  useFocusEffect(
+  useCallback(() => {
     loadOrders();
-  }, []);
+  }, [activeTab])
+);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
