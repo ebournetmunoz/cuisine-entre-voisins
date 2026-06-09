@@ -233,6 +233,14 @@ export default function AddMealScreen() {
       return;
     }
 
+    if (!user?.location?.address) {
+      Alert.alert(
+        'Profil incomplet',
+        'Complétez votre adresse dans votre profil pour publier un plat.'
+      );
+      return;
+    }
+
     setLoading(true);
     setSuccessMessage('');
 
@@ -386,7 +394,7 @@ export default function AddMealScreen() {
 
           <View style={styles.row}>
             <View style={[styles.section, { flex: 1 }]}>
-              <Text style={styles.label}>Prix (€) *</Text>
+              <Text style={styles.label}>Prix par portion (€) *</Text>
               <TextInput
                 style={[styles.input, isFree && styles.inputDisabled]}
                 placeholder=""

@@ -33,33 +33,47 @@ export default function ForgotPasswordScreen() {
   const router = useRouter();
 
   const handleRequestCode = async () => {
-    if (!email.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer votre email');
-      return;
+  if (!email.trim()) {
+    Alert.alert('Erreur', 'Veuillez entrer votre email');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await axios.post(
+      `${BACKEND_URL}/api/auth/password-reset/request`,
+      {
+        email: email.trim().toLowerCase(),
+      }
+    );
+
+    if (response.data.code_hint) {
+      setCodeHint(response.data.code_hint);
     }
 
-    setLoading(true);
-    try {
-      const response = await axios.post(`${BACKEND_URL}/api/auth/password-reset/request`, {
-        email: email.trim().toLowerCase(),
-      });
-      
-      // Temporarily show code hint for testing
-      if (response.data.code_hint) {
-        setCodeHint(response.data.code_hint);
-      }
-      
-      setStep('code');
-      Alert.alert(
-        'Code envoyé',
-        'Si cet email existe dans notre base, vous recevrez un code de réinitialisation.'
-      );
-    } catch (error: any) {
-      Alert.alert('Erreur', error.response?.data?.detail || 'Une erreur est survenue');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setStep('code');
+
+    Alert.alert(
+      'Code envoyé',
+      'Si cet email existe dans notre base, vous recevrez un code de réinitialisation.'
+    );
+  } catch (error: any) {
+    console.log('BACKEND_URL =', BACKEND_URL);
+    console.log('ERROR =', error);
+    console.log('RESPONSE =', error?.response?.data);
+    console.log('STATUS =', error?.response?.status);
+
+    Alert.alert(
+      'Erreur debug',
+      `BACKEND=${BACKEND_URL}\n\n${JSON.stringify(
+        error?.response?.data || error.message
+      )}`
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleVerifyCode = async () => {
     if (!code.trim()) {

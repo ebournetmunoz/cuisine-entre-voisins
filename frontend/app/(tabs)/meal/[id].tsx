@@ -380,28 +380,6 @@ export default function MealDetailScreen() {
                     </View>
                   </View>
                 )}
-                {meal.bag_provided && (
-                  <View style={styles.packagingItem}>
-                    <View style={[styles.packagingIcon, { backgroundColor: colors.success + '20' }]}>
-                      <Ionicons name="bag-outline" size={18} color={colors.success} />
-                    </View>
-                    <View style={styles.packagingTextWrap}>
-                      <Text style={styles.packagingLabel}>Sac de transport</Text>
-                      <Text style={styles.packagingValue}>Fourni</Text>
-                    </View>
-                  </View>
-                )}
-                {!meal.bag_provided && meal.bag_provided !== undefined && (
-                  <View style={styles.packagingItem}>
-                    <View style={[styles.packagingIcon, { backgroundColor: colors.warning + '20' }]}>
-                      <Ionicons name="bag-outline" size={18} color={colors.warning} />
-                    </View>
-                    <View style={styles.packagingTextWrap}>
-                      <Text style={styles.packagingLabel}>Sac de transport</Text>
-                      <Text style={[styles.packagingValue, { color: colors.warning }]}>Non fourni</Text>
-                    </View>
-                  </View>
-                )}
                 {meal.bring_container && (
                   <View style={styles.bringContainerBanner}>
                     <Ionicons name="information-circle" size={20} color={colors.accent} />
